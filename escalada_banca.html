@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escalada da Banca</title>
+<script type="module">
+// Firebase carregado via ESM — exposto globalmente após init
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: #222733;
+    --green: #00e5a0;
+    --red: #ff4d6d;
+    --gold: #f5c842;
+    --blue: #4d9fff;
+    --text: #e8eaf0;
+    --muted: #5a6070;
+    --accent: #00e5a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: padding 0.2s;
+  }
+  .header-body { overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s; max-height: 400px; opacity: 1; }
+  .header-body.collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+  .collapse-btn {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 1rem; padding: 0; line-height: 1; transition: transform 0.2s;
+  }
+  .collapse-btn.collapsed { transform: rotate(180deg); }
+  .resume-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px;
+  }
+  .resume-pill {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 8px; text-align: center;
+  }
+  .resume-pill .rl { font-size: 0.52rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 2px; }
+  .resume-pill .rv { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem; }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--muted); }
+
+  .banca-display {
+    text-align: right;
+  }
+  .banca-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .banca-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .stat-pill .label {
+    font-size: 0.58rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .stat-pill .val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .stat-pill .val.green { color: var(--green); }
+  .stat-pill .val.gold { color: var(--gold); }
+  .stat-pill .val.blue { color: var(--blue); }
+
+  /* MAIN */
+  main { padding: 20px 16px 100px; max-width: 600px; margin: 0 auto; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 10px;
+    margin-top: 24px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* DAY CARD */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .day-card.active { border-color: var(--green); box-shadow: 0 0 20px rgba(0,229,160,0.08); }
+  .day-card.completed-win { border-left: 3px solid var(--green); }
+  .day-card.completed-loss { border-left: 3px solid var(--red); }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+  .day-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--text);
+    line-height: 1;
+  }
+  .day-number small {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-weight: 400;
+    display: block;
+    font-family: 'Space Mono', monospace;
+    margin-top: 2px;
+  }
+  .day-meta {
+    text-align: right;
+  }
+  .day-meta .meta-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .day-meta .meta-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .day-result-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .input-group label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .input-group input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--green);
+  }
+
+  /* APOSTAS */
+  .apostas-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+
+  .aposta-row {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 1fr 70px 90px 28px;
+    gap: 8px;
+    align-items: center;
+  }
+  .aposta-row input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 3px 0;
+    width: 100%;
+  }
+  .aposta-row input:focus { outline: none; border-bottom-color: var(--green); }
+  .aposta-row input::placeholder { color: var(--muted); font-size: 0.7rem; }
+
+  .aposta-labels {
+    display: grid;
+    grid-template-columns: 1fr 70px 90px 28px;
+    gap: 8px;
+    padding: 0 12px;
+    margin-bottom: 4px;
+  }
+  .aposta-labels span {
+    font-size: 0.55rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .status-toggle {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .status-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .status-btn.green-active { background: rgba(0,229,160,0.2); border-color: var(--green); }
+  .status-btn.red-active { background: rgba(255,77,109,0.2); border-color: var(--red); }
+
+  .del-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .del-btn:hover { background: rgba(255,77,109,0.15); border-color: var(--red); color: var(--red); }
+
+  .add-aposta-btn {
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .add-aposta-btn:hover { border-color: var(--green); color: var(--green); }
+
+  .save-day-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.15s;
+  }
+  .save-day-btn:hover { opacity: 0.85; }
+
+  /* PROGRESS BAR STRIP */
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    margin: 12px 0 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    transition: width 0.5s ease;
+  }
+
+  /* COLLAPSE */
+  .day-body { display: none; }
+  .day-body.open { display: block; }
+
+  .chevron {
+    color: var(--muted);
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* DAY SUMMARY (collapsed) */
+  .day-summary {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+  }
+  .tag.green { background: rgba(0,229,160,0.15); color: var(--green); border: 1px solid rgba(0,229,160,0.3); }
+  .tag.red { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+  .tag.neutral { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ROADMAP */
+  .roadmap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 8px;
+    overflow-x: auto;
+  }
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+    min-width: 300px;
+  }
+  .road-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.55rem;
+    cursor: default;
+    position: relative;
+  }
+  .road-cell.done { background: rgba(0,229,160,0.25); color: var(--green); }
+  .road-cell.current { background: var(--green); color: #000; animation: pulse 1.5s infinite; }
+  .road-cell.future { background: var(--surface2); color: var(--muted); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 12px 16px 20px;
+    gap: 10px;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav-btn.active { background: var(--green); color: #000; border-color: var(--green); }
+  .nav-btn:not(.active):hover { border-color: var(--green); color: var(--green); }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* STATS VIEW */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .stats-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .stats-card .sc-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .stats-card .sc-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .stats-card.full { grid-column: 1 / -1; }
+
+  /* Chart */
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 10px;
+  }
+  canvas { width: 100% !important; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--green);
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* APOSTA STATUS inline */
+  .inline-status {
+    display: flex;
+    gap: 3px;
+  }
+  .inline-status button {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 0.65rem;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    transition: all 0.15s;
+  }
+  .inline-status button.g { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.15); }
+  .inline-status button.r { border-color: var(--red); color: var(--red); background: rgba(255,77,109,0.15); }
+
+  .retorno-display {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-align: right;
+    min-width: 60px;
+  }
+  .retorno-display.pos { color: var(--green); }
+  .retorno-display.neg { color: var(--red); }
+
+  /* Aposta row redesign */
+  .aposta-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .aposta-item-top {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .aposta-item-top input[type="text"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 3px 0;
+  }
+  .aposta-item-top input[type="text"]:focus { outline: none; border-bottom-color: var(--green); }
+  .aposta-item-top input[type="text"]::placeholder { color: var(--muted); }
+  .aposta-item-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .mini-input-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .mini-label { font-size: 0.55rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .mini-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    padding: 3px 0;
+    width: 100%;
+  }
+  .mini-input:focus { outline: none; border-bottom-color: var(--green); }
+
+  /* SYNC */
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted); display: inline-block;
+    margin-left: 6px; vertical-align: middle;
+    transition: background 0.3s;
+  }
+  .sync-dot.syncing { background: var(--gold); animation: blink 0.7s infinite; }
+  .sync-dot.synced { background: var(--green); }
+  .sync-dot.error { background: var(--red); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .setup-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .setup-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 420px;
+  }
+  .setup-box h2 {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
+    margin-bottom: 6px; color: var(--green);
+  }
+  .setup-box p { font-size: 0.72rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+  .setup-box input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 0.78rem; padding: 10px 12px; margin-bottom: 10px;
+  }
+  .setup-box input:focus { outline: none; border-color: var(--green); }
+  .setup-save-btn {
+    width: 100%; padding: 12px; background: var(--green); color: #000;
+    border: none; border-radius: 8px; font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 0.85rem; cursor: pointer; margin-top: 6px;
+  }
+  .setup-skip { 
+    width: 100%; padding: 10px; background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--muted); font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-top: 8px;
+  }
+  .setup-err { color: var(--red); font-size: 0.7rem; margin-top: 6px; display: none; }
+</style>
+</head>
+<body>
+
+<!-- SETUP OVERLAY -->
+<div class="setup-overlay" id="setup-overlay" style="display:none;">
+  <div class="setup-box">
+    <h2>🔥 Firebase Sync</h2>
+    <p>Cole sua <strong style="color:var(--text);">firebaseConfig</strong> abaixo para sincronizar entre dispositivos em tempo real.<br>
+    Crie um projeto gratuito em <strong style="color:var(--text);">console.firebase.google.com</strong> → Realtime Database.</p>
+    <textarea id="setup-config" rows="6" placeholder='{&#10;  "apiKey": "...",&#10;  "authDomain": "...",&#10;  "databaseURL": "https://xxx.firebaseio.com",&#10;  "projectId": "..."&#10;}' style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.72rem;padding:10px 12px;resize:vertical;margin-bottom:10px;"></textarea>
+    <input type="text" id="setup-user" placeholder="Seu ID (ex: lucas) — mesma conta em todos os dispositivos" autocomplete="off">
+    <div class="setup-err" id="setup-err"></div>
+    <button class="setup-save-btn" onclick="saveFirebaseConfig()">Conectar e sincronizar</button>
+    <button class="setup-skip" onclick="closeSetup()">Usar só localmente por agora</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="header">
+  <!-- Always visible: logo + banca + collapse btn -->
+  <div class="header-top" style="margin-bottom:0;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div>
+        <div class="logo">Escalada <span>⚽</span><span class="sync-dot" id="sync-dot" title="Status sincronização"></span></div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:1px;" id="header-day">Carregando...</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="banca-display">
+        <div class="banca-label">Banca atual</div>
+        <div class="banca-value" id="header-banca">R$ 0,00</div>
+      </div>
+      <button class="collapse-btn" id="collapse-btn" onclick="toggleHeader()" title="Recolher cabeçalho">▲</button>
+    </div>
+  </div>
+
+  <!-- Collapsible body -->
+  <div class="header-body" id="header-body">
+    <!-- Pills row -->
+    <div class="progress-section" style="margin-top:10px;">
+      <div class="stat-pill">
+        <span class="label">Dia</span>
+        <span class="val blue" id="stat-dia">-</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Meta real</span>
+        <span class="val green" id="stat-meta">-</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Meta 100d</span>
+        <span class="val gold" id="stat-final">R$1,48M</span>
+      </div>
+    </div>
+
+    <!-- Resume row: jogado, saldo dia, meta planejada, meta real -->
+    <div class="resume-grid" id="resume-grid">
+      <div class="resume-pill">
+        <span class="rl">Jogado</span>
+        <span class="rv" id="res-jogado" style="color:var(--text);">R$0</span>
+      </div>
+      <div class="resume-pill">
+        <span class="rl">Saldo dia</span>
+        <span class="rv" id="res-saldo">R$0</span>
+      </div>
+      <div class="resume-pill">
+        <span class="rl">Planejado</span>
+        <span class="rv" id="res-plan" style="color:var(--blue);">-</span>
+      </div>
+      <div class="resume-pill">
+        <span class="rl">Plano dia</span>
+        <span class="rv" id="res-plan-meta" style="color:var(--blue);">-</span>
+      </div>
+    </div>
+
+    <!-- Balance row -->
+    <div style="margin-top:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Balanço geral</div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:1px;">Banca + lucros − total investido</div>
+      </div>
+      <div style="text-align:right;">
+        <div id="balanco-val" style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;"></div>
+        <div id="balanco-detail" style="font-size:0.58rem;color:var(--muted);margin-top:1px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast2"></div>
+
+<!-- VIEWS -->
+<main>
+
+  <!-- VIEW: HOJE -->
+  <div class="view active" id="view-hoje">
+
+    <div class="section-title">Hoje — Registro do dia</div>
+    <div id="today-card-wrap"></div>
+
+    <div class="section-title" style="margin-top:28px;">Mapa da escalada</div>
+    <div class="roadmap">
+      <div class="roadmap-grid" id="roadmap-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- VIEW: HISTÓRICO -->
+  <div class="view" id="view-hist">
+    <div class="section-title">Histórico de dias</div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- VIEW: STATS -->
+  <div class="view" id="view-stats">
+    <div class="section-title">Estatísticas</div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="chart-wrap" style="margin-top:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Evolução da banca</div>
+        <div style="display:flex;gap:14px;font-size:0.62rem;">
+          <span style="color:var(--green);">— Real</span>
+          <span style="color:var(--blue);">--- Planejado</span>
+        </div>
+      </div>
+      <canvas id="banca-chart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- VIEW: KELLY -->
+  <div class="view" id="view-kelly">
+    <div class="section-title">Calculadora Kelly</div>
+
+    <!-- Winrate dual display -->
+    <div class="day-card" style="margin-bottom:12px;">
+      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Taxa de acerto</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <!-- Base card -->
+        <div id="kelly-base-card" style="background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;transition:border-color 0.2s;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Base padrão</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--muted);">67,5%</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:4px;">Ponto de partida</div>
+        </div>
+        <!-- Real card -->
+        <div id="kelly-real-card" style="background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;transition:border-color 0.2s;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Seu histórico</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;" id="kelly-wr-real">—</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:4px;" id="kelly-total-ap">0 apostas</div>
+        </div>
+      </div>
+      <div id="kelly-wr-note" style="font-size:0.65rem;background:var(--surface2);border-radius:6px;padding:9px 11px;color:var(--muted);line-height:1.5;"></div>
+    </div>
+
+    <!-- Balanço do dia vs meta -->
+    <div class="day-card" style="margin-bottom:12px;" id="kelly-dia-card"></div>
+
+    <!-- Calculadora -->
+    <div class="day-card" style="margin-bottom:12px;">
+      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Calcular para esta aposta</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="input-group">
+          <label>Odd da aposta</label>
+          <input type="number" id="kelly-odd" step="0.01" min="1.01" placeholder="ex: 1.65" oninput="calcKelly()" value="1.65">
+        </div>
+        <div class="input-group">
+          <label>% acerto usado</label>
+          <input type="number" id="kelly-pct" step="0.1" min="1" max="100" placeholder="67.5" oninput="this._touched=true;calcKelly()" value="67.5">
+        </div>
+      </div>
+
+      <!-- Resultado Kelly -->
+      <div id="kelly-result" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- Tabela de odds -->
+    <div class="day-card">
+      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Referência rápida — seu acerto atual</div>
+      <div id="kelly-table"></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="switchView('hoje', this)">Hoje</button>
+  <button class="nav-btn" onclick="switchView('hist', this)">Histórico</button>
+  <button class="nav-btn" onclick="switchView('stats', this)">Stats</button>
+  <button class="nav-btn" onclick="switchView('kelly', this)">Kelly</button>
+  <button class="nav-btn" onclick="openSetup()" style="flex:0;padding:10px 14px;" title="Sincronização">☁</button>
+</div>
+
+<script>
+// ========================
+// FIREBASE SYNC
+// ========================
+let _fbDb = null;
+let _fbUser = localStorage.getItem('escalada_user') || null;
+let _fbRef = null;
+let _fbListening = false;
+
+function syncDot(status) {
+  const d = document.getElementById('sync-dot');
+  if (!d) return;
+  d.className = 'sync-dot' + (status ? ' ' + status : '');
+  const labels = { syncing: 'Sincronizando...', synced: 'Sincronizado ✓', error: 'Erro de sync' };
+  d.title = labels[status] || 'Sem sincronização';
+}
+
+async function initFirebase(config, userId) {
+  try {
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getDatabase, ref, set, onValue, get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+
+    const apps = getApps();
+    const app = apps.length ? apps[0] : initializeApp(config);
+    _fbDb = getDatabase(app);
+    _fbUser = userId;
+    _fbRef = ref(_fbDb, 'users/' + userId + '/state');
+
+    // Expose firebase fns globally for save()
+    window._fbSet = (data) => set(_fbRef, data);
+    window._fbGet = () => get(_fbRef);
+    window._fbOnValue = (cb) => onValue(_fbRef, cb);
+
+    return true;
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    return false;
+  }
+}
+
+async function pushToFirebase() {
+  if (!window._fbSet) return;
+  syncDot('syncing');
+  try {
+    await window._fbSet(JSON.parse(JSON.stringify(state)));
+    syncDot('synced');
+  } catch(e) { syncDot('error'); console.error(e); }
+}
+
+function refreshCurrentView() {
+  // Re-render whatever tab is currently active
+  const active = document.querySelector('.view.active');
+  if (!active) return;
+  const id = active.id;
+  if (id === 'view-hoje') { renderTodayCard(); }
+  else if (id === 'view-hist') { renderHistory(); }
+  else if (id === 'view-stats') { renderStats(); }
+  else if (id === 'view-kelly') { renderKelly(); }
+}
+
+function startFirebaseListener() {
+  if (_fbListening || !window._fbOnValue) return;
+  _fbListening = true;
+  let firstCall = true;
+  window._fbOnValue(snapshot => {
+    if (!snapshot.exists()) return;
+    const remote = snapshot.val();
+    if (!remote) return;
+
+    // Skip first call if local data is already loaded (avoid overwriting unsaved local changes on init)
+    if (firstCall) {
+      firstCall = false;
+      // If remote diaAtual is ahead of local, always take remote
+      if (remote.diaAtual <= state.diaAtual && JSON.stringify(remote) === JSON.stringify(state)) return;
+    }
+
+    state = remote;
+    localStorage.setItem('escalada_state', JSON.stringify(state));
+    syncDot('synced');
+    updateHeader();
+    refreshCurrentView();
+    showToast('🔄 Sincronizado!');
+  });
+}
+
+async function saveFirebaseConfig() {
+  const configRaw = document.getElementById('setup-config').value.trim();
+  const userId = document.getElementById('setup-user').value.trim();
+  const errEl = document.getElementById('setup-err');
+  errEl.style.display = 'none';
+
+  if (!configRaw || !userId) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Preencha a config e o seu ID.';
+    return;
+  }
+
+  let config;
+  try { config = JSON.parse(configRaw); } catch(e) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'JSON inválido. Copie direto do Firebase Console.';
+    return;
+  }
+
+  if (!config.databaseURL) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Falta o campo "databaseURL". Ative o Realtime Database no projeto.';
+    return;
+  }
+
+  syncDot('syncing');
+  const ok = await initFirebase(config, userId);
+  if (!ok) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Falha ao conectar. Verifique as credenciais.';
+    syncDot('error');
+    return;
+  }
+
+  // Save config locally
+  localStorage.setItem('fb_config', JSON.stringify(config));
+  localStorage.setItem('escalada_user', userId);
+
+  // Pull existing data or push local
+  try {
+    const snap = await window._fbGet();
+    if (snap.exists() && snap.val()) {
+      state = snap.val();
+      localStorage.setItem('escalada_state', JSON.stringify(state));
+    } else {
+      await pushToFirebase();
+    }
+    startFirebaseListener();
+    closeSetup();
+    showToast('🔥 Firebase conectado! Sync ativo.');
+    updateHeader(); renderTodayCard();
+  } catch(e) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Erro: ' + e.message;
+    syncDot('error');
+  }
+}
+
+function closeSetup() {
+  document.getElementById('setup-overlay').style.display = 'none';
+}
+
+function openSetup() {
+  const saved = localStorage.getItem('fb_config') || '';
+  const user = localStorage.getItem('escalada_user') || '';
+  if (saved) document.getElementById('setup-config').value = JSON.stringify(JSON.parse(saved), null, 2);
+  document.getElementById('setup-user').value = user;
+  document.getElementById('setup-overlay').style.display = 'flex';
+}
+
+function save() {
+  localStorage.setItem('escalada_state', JSON.stringify(state));
+  if (window._fbSet) pushToFirebase();
+}
+
+// ========================
+// DADOS INICIAIS (projeção dos 100 dias)
+// ========================
+const BANCA_INICIAL = 30;
+const META_INICIAL = 30;
+
+function buildProjection() {
+  const rows = [];
+  const dates = [
+    null,
+    "2026-05-20","2026-05-21","2026-05-22","2026-05-23","2026-05-24","2026-05-25",
+  ];
+  
+  // Valores da planilha original
+  const bancaProj = [
+    30,46.49,50.86,55.946,61.5406,67.69466,190.59,
+    209.649,230.6139,253.67529,279.042819,306.9471009,337.641811,371.4059921,
+    408.5465913,449.4012504,494.3413755,543.775513,598.1530643,657.9683708,
+    723.7652078,796.1417286,875.7559015,963.3314916,1059.664641,1165.631105,
+    1282.194215,1410.413637,1551.455001,1706.600501,1877.260551,2064.986606,
+    2271.485266,2498.633793,2748.497172,3023.346889,3325.681578,3658.249736,
+    4024.07471,4426.482181,4869.130399,5356.043439,5891.647783,6480.812561,
+    7128.893817,7841.783199,8625.961519,9488.557671,10437.41344,11481.15478,
+    12629.27026,13892.19729,15281.41701,16809.55872,18490.51459,20339.56605,
+    22373.52265,24610.87492,27071.96241,29779.15865,32757.07451,36032.78196,
+    39636.06016,43599.66618,47959.63279,52755.59607,58031.15568,63834.27125,
+    70217.69837,77239.46821,84963.41503,93459.75653,102805.7322,113086.3054,
+    124394.9359,136834.4295,150517.8725,165569.6597,182126.6257,200339.2883,
+    220373.2171,242410.5388,266651.5927,293316.752,322648.4272,354913.2699,
+    390404.5969,429445.0566,472389.5622,519628.5185,571591.3703,628750.5073,
+    691625.5581,760788.1139,836866.9253,920553.6178,1012608.98,1113869.878,
+    1225256.865,1347782.552,1482560.807
+  ];
+
+  const metaProj = [
+    30,33,36.3,39.93,43.923,48.3153,53.14683,58.461513,64.3076643,70.73843073,
+    77.8122738,85.59350118,94.1528513,103.5681364,113.9249501,125.3174451,
+    137.8491896,151.6341085,166.7975194,183.4772713,201.8249985,222.0074983,
+    244.2082482,268.629073,295.4919803,325.0411783,357.5452961,393.2998257,
+    432.6298083,475.8927892,523.4820681,575.8302749,633.4133024,696.7546326,
+    766.4300959,843.0731054,927.380416,1020.118458,1122.130303,1234.343334,
+    1357.777667,1493.555434,1642.910977,1807.202075,1987.922282,2186.714511,
+    2405.385962,2645.924558,2910.517014,3201.568715,3521.725586,3873.898145,
+    4261.28796,4687.416755,5156.158431,5671.774274,6238.951702,6862.846872,
+    7549.131559,8304.044715,9134.449186,10047.8941,11052.68352,12157.95187,
+    13373.74705,14711.12176,16182.23393,17800.45733,19580.50306,21538.55337,
+    23692.4087,26061.64957,28667.81453,31534.59599,34688.05558,38156.86114,
+    41972.54726,46169.80198,50786.78218,55865.4604,61452.00644,67597.20708,
+    74356.92779,81792.62057,89971.88263,98969.07089,108865.978,119752.5758,
+    131727.8334,144900.6167,159390.6784,175329.7462,192862.7208,212148.9929,
+    233363.8922,256700.2814,282370.3095,310607.3405,341668.0745,375834.882,
+    413418.3702
+  ];
+
+  for (let i = 1; i <= 100; i++) {
+    rows.push({
+      indice: i,
+      bancaMeta: bancaProj[i] || bancaProj[bancaProj.length-1],
+      metaBase: metaProj[i] || metaProj[metaProj.length-1],
+      metaDia10pct: (bancaProj[i-1] || bancaProj[0]) * 0.1,
+    });
+  }
+  return rows;
+}
+
+const PROJ = buildProjection();
+
+// ========================
+// STATE
+// ========================
+let state = JSON.parse(localStorage.getItem('escalada_state') || 'null') || {
+  bancaAtual: 30,
+  diaAtual: 1,
+  saldoExterno: -230,
+  dias: {}
+};
+
+function fmt(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtShort(v) {
+  if (v >= 1000000) return 'R$ ' + (v/1000000).toFixed(1) + 'M';
+  if (v >= 1000) return 'R$ ' + (v/1000).toFixed(1) + 'k';
+  return fmt(v);
+}
+
+// ========================
+// HEADER
+// ========================
+function getBancaLive() {
+  // Banca atual = banca inicial do dia + lucro das apostas já marcadas
+  const dia = state.diaAtual;
+  const dadosDia = state.dias[dia];
+  if (!dadosDia) return state.bancaAtual;
+  return dadosDia.bancaInicial + (dadosDia.apostas||[]).reduce((a,ap) => a + calcRetorno(ap), 0);
+}
+
+function toggleHeader() {
+  const body = document.getElementById('header-body');
+  const btn = document.getElementById('collapse-btn');
+  body.classList.toggle('collapsed');
+  btn.classList.toggle('collapsed');
+}
+
+function updateHeader() {
+  const bancaLive = getBancaLive();
+  document.getElementById('header-banca').textContent = fmt(bancaLive);
+  const dia = state.diaAtual;
+  document.getElementById('stat-dia').textContent = dia + '/100';
+  document.getElementById('header-day').textContent = 'Dia ' + dia + ' · ' + new Date().toLocaleDateString('pt-BR');
+  const meta10 = bancaLive * 0.10;
+  document.getElementById('stat-meta').textContent = fmt(meta10);
+
+  // Planned scale: 30 * 1.1^(dia-1) for current day
+  const planBanca = 30 * Math.pow(1.1, dia - 1);
+  const planMeta = planBanca * 0.10;
+  const resplan = document.getElementById('res-plan');
+  const resplanmeta = document.getElementById('res-plan-meta');
+  if (resplan) resplan.textContent = fmtShort(planBanca);
+  if (resplanmeta) resplanmeta.textContent = '+' + fmtShort(planMeta);
+
+  // Resume: jogado hoje, saldo do dia
+  const dadosDia = state.dias[dia];
+  const apostas = dadosDia ? (dadosDia.apostas||[]) : [];
+  const jogado = apostas.reduce((a,ap) => a + (ap.valor||0), 0);
+  const saldoDia = apostas.reduce((a,ap) => a + calcRetorno(ap), 0);
+  const resJog = document.getElementById('res-jogado');
+  const resSaldo = document.getElementById('res-saldo');
+  if (resJog) resJog.textContent = fmt(jogado);
+  if (resSaldo) {
+    resSaldo.textContent = (saldoDia >= 0 ? '+' : '') + fmt(saldoDia);
+    resSaldo.style.color = saldoDia >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  // Balanço geral
+  const lucroNaBanca = bancaLive - 30;
+  const balanco = (state.saldoExterno || 0) + lucroNaBanca;
+  const bEl = document.getElementById('balanco-val');
+  const dEl = document.getElementById('balanco-detail');
+  if (bEl) {
+    bEl.textContent = fmt(balanco);
+    bEl.style.color = balanco >= 0 ? 'var(--green)' : 'var(--red)';
+    dEl.textContent = fmt(state.saldoExterno||0) + ' histórico · banca ' + fmt(bancaLive);
+  }
+}
+
+// ========================
+// TODAY CARD
+// ========================
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function apostaCardHtml(ap, idx) {
+  const retorno = calcRetorno(ap);
+  const borderColor = ap.status === 'green' ? 'var(--green)' : ap.status === 'red' ? 'var(--red)' : 'var(--border)';
+  return `
+  <div id="ap-card-${idx}" style="background:var(--bg);border:1px solid ${borderColor};border-radius:10px;padding:12px;transition:border-color 0.2s;">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+      <input type="text" placeholder="Descrição (opcional)..." value="${(ap.desc||'').replace(/"/g,'&quot;')}"
+        onblur="saveAposta(${idx},'desc',this.value)"
+        style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:0.78rem;padding:3px 0;">
+      <button onclick="removeAposta(${idx})" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px;line-height:1;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;">
+      <div>
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Valor (R$)</div>
+        <input type="number" step="0.01" min="0" placeholder="0,00" value="${ap.valor||''}"
+          onblur="saveAposta(${idx},'valor',parseFloat(this.value)||0)"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.85rem;padding:7px 8px;">
+      </div>
+      <div>
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Odd</div>
+        <input type="number" step="0.01" min="1.01" placeholder="1.00" value="${ap.odd||''}"
+          onblur="saveAposta(${idx},'odd',parseFloat(this.value)||0)"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.85rem;padding:7px 8px;">
+      </div>
+      <div>
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Data</div>
+        <input type="date" value="${ap.data||todayStr()}"
+          onchange="saveAposta(${idx},'data',this.value)"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.75rem;padding:7px 8px;">
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+      <select onchange="saveAposta(${idx},'status',this.value||null);updateApostaCard(${idx})"
+        style="background:var(--surface2);border:1px solid ${borderColor};border-radius:6px;color:${ap.status==='green'?'var(--green)':ap.status==='red'?'var(--red)':'var(--muted)'};font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;padding:7px 10px;cursor:pointer;outline:none;">
+        <option value="" ${!ap.status?'selected':''}>⏳ Pendente</option>
+        <option value="green" ${ap.status==='green'?'selected':''}>🟢 Green</option>
+        <option value="red" ${ap.status==='red'?'selected':''}>🔴 Red</option>
+      </select>
+      <span id="ap-retorno-${idx}" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.95rem;color:${ap.status?(retorno>=0?'var(--green)':'var(--red)'):'var(--muted)'};">
+        ${ap.status ? (retorno>=0?'+':'')+fmt(retorno) : '—'}
+      </span>
+    </div>
+  </div>`;
+}
+
+function updateSummary() {
+  const dia = state.diaAtual;
+  const dadosDia = state.dias[dia];
+  if (!dadosDia) return;
+  const bancaFinalCalc = calcBancaFinal(dadosDia);
+  const lucro = bancaFinalCalc - dadosDia.bancaInicial;
+  const el = document.getElementById('day-summary-box');
+  if (el) {
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Banca final calculada</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:${lucro>=0?'var(--green)':'var(--red)'};">${fmt(bancaFinalCalc)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.6rem;color:var(--muted);">Resultado do dia</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;color:${lucro>=0?'var(--green)':'var(--red)'};">${lucro>=0?'+':''}${fmt(lucro)}</span>
+      </div>`;
+  }
+}
+
+function updateApostaCard(idx) {
+  const dia = state.diaAtual;
+  const ap = state.dias[dia].apostas[idx];
+  const card = document.getElementById('ap-card-'+idx);
+  if (!card) return;
+  const retorno = calcRetorno(ap);
+  const borderColor = ap.status === 'green' ? 'var(--green)' : ap.status === 'red' ? 'var(--red)' : 'var(--border)';
+  card.style.borderColor = borderColor;
+  // update select color
+  const sel = card.querySelector('select');
+  if (sel) sel.style.color = ap.status==='green'?'var(--green)':ap.status==='red'?'var(--red)':'var(--muted)';
+  const retEl = document.getElementById('ap-retorno-'+idx);
+  if (retEl) {
+    retEl.style.color = ap.status ? (retorno>=0?'var(--green)':'var(--red)') : 'var(--muted)';
+    retEl.textContent = ap.status ? (retorno>=0?'+':'')+fmt(retorno) : '—';
+  }
+  updateSummary();
+  updateHeader(); // live banca update
+}
+
+function renderTodayCard() {
+  const dia = state.diaAtual;
+  if (!state.dias[dia]) {
+    state.dias[dia] = { bancaInicial: state.bancaAtual, bancaFinal: null, apostas: [] };
+  }
+  const dadosDia = state.dias[dia];
+  if (!dadosDia.apostas) dadosDia.apostas = [];
+
+  const apostasHtml = dadosDia.apostas.map((ap, idx) => apostaCardHtml(ap, idx)).join('');
+  const bancaFinalCalc = calcBancaFinal(dadosDia);
+  const lucro = bancaFinalCalc - dadosDia.bancaInicial;
+
+  const wrap = document.getElementById('today-card-wrap');
+  wrap.innerHTML = `
+  <div class="day-card active">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+      <div class="day-number">Dia ${dia} <small>${new Date().toLocaleDateString('pt-BR')}</small></div>
+      <div style="text-align:right;">
+        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Banca inicial</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text);">${fmt(dadosDia.bancaInicial)}</div>
+      </div>
+    </div>
+
+    <div id="apostas-container" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+      ${apostasHtml || '<div style="text-align:center;padding:20px;font-size:0.75rem;color:var(--muted);">Nenhuma aposta ainda</div>'}
+    </div>
+
+    <button onclick="addAposta()"
+      style="width:100%;padding:10px;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.75rem;cursor:pointer;transition:all 0.15s;margin-bottom:14px;"
+      onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      + Adicionar aposta
+    </button>
+
+    <div id="day-summary-box" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Banca final calculada</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:${lucro>=0?'var(--green)':'var(--red)'};">${fmt(bancaFinalCalc)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.6rem;color:var(--muted);">Resultado do dia</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;color:${lucro>=0?'var(--green)':'var(--red)'};">${lucro>=0?'+':''}${fmt(lucro)}</span>
+      </div>
+    </div>
+
+    <button class="save-day-btn" onclick="saveDay()">✓ Fechar dia ${dia}</button>
+  </div>`;
+
+  renderRoadmap();
+}
+
+function calcRetorno(ap) {
+  if (!ap.valor || !ap.odd || !ap.status) return 0;
+  if (ap.status === 'green') return (ap.valor * ap.odd) - ap.valor;
+  if (ap.status === 'red') return -ap.valor;
+  return 0;
+}
+
+function calcBancaFinal(dadosDia) {
+  let banca = dadosDia.bancaInicial;
+  (dadosDia.apostas || []).forEach(ap => {
+    banca += calcRetorno(ap);
+  });
+  return Math.max(0, banca);
+}
+
+function addAposta() {
+  const dia = state.diaAtual;
+  if (!state.dias[dia]) state.dias[dia] = { bancaInicial: state.bancaAtual, bancaFinal: null, apostas: [] };
+  if (!state.dias[dia].apostas) state.dias[dia].apostas = [];
+  const ap = { desc: '', valor: 0, odd: 0, status: null, data: todayStr() };
+  state.dias[dia].apostas.push(ap);
+  save();
+  const idx = state.dias[dia].apostas.length - 1;
+  const container = document.getElementById('apostas-container');
+  if (container) {
+    // Remove empty state message if present
+    if (container.querySelector('div[style*="Nenhuma aposta"]')) container.innerHTML = '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = apostaCardHtml(ap, idx);
+    container.appendChild(tmp.firstElementChild);
+    // Focus first input of new card
+    const newCard = document.getElementById('ap-card-'+idx);
+    if (newCard) newCard.querySelector('input[type="text"]')?.focus();
+  } else {
+    renderTodayCard();
+  }
+}
+
+function removeAposta(idx) {
+  const dia = state.diaAtual;
+  state.dias[dia].apostas.splice(idx, 1);
+  save();
+  renderTodayCard();
+}
+
+function saveAposta(idx, field, val) {
+  const dia = state.diaAtual;
+  if (!state.dias[dia] || !state.dias[dia].apostas) return;
+  if (field === 'status') val = val || null;
+  state.dias[dia].apostas[idx][field] = val;
+  save();
+  updateSummary();
+  updateHeader();
+}
+
+function updateAposta(idx, field, val) {
+  saveAposta(idx, field, val);
+}
+
+function saveDay() {
+  const dia = state.diaAtual;
+  const dadosDia = state.dias[dia];
+  const bancaFinal = calcBancaFinal(dadosDia);
+  dadosDia.bancaFinal = bancaFinal;
+  dadosDia.fechado = true;
+
+  state.bancaAtual = bancaFinal;
+  state.diaAtual = dia + 1;
+  state.dias[state.diaAtual] = {
+    bancaInicial: bancaFinal,
+    bancaFinal: null,
+    apostas: [],
+    fechado: false
+  };
+
+  save();
+  showToast('Dia ' + dia + ' fechado! 🎯');
+  updateHeader();
+  renderTodayCard();
+}
+
+// ========================
+// ROADMAP
+// ========================
+function renderRoadmap() {
+  const grid = document.getElementById('roadmap-grid');
+  let html = '';
+  for (let i = 1; i <= 100; i++) {
+    const planVal = 30 * Math.pow(1.1, i - 1);
+    const dadosDia = state.dias[i];
+    const realVal = dadosDia ? (dadosDia.bancaFinal || dadosDia.bancaInicial) : null;
+    let cls = 'future';
+    let extraStyle = '';
+    if (i === state.diaAtual) {
+      cls = 'current';
+    } else if (i < state.diaAtual) {
+      if (realVal !== null) {
+        if (realVal >= planVal) extraStyle = 'background:rgba(0,229,160,0.3);color:var(--green);border:1px solid rgba(0,229,160,0.5);';
+        else extraStyle = 'background:rgba(255,77,109,0.2);color:var(--red);border:1px solid rgba(255,77,109,0.4);';
+      } else {
+        cls = 'done';
+      }
+    }
+    const planFmt = fmtShort(planVal);
+    const realFmt = realVal !== null ? fmtShort(realVal) : '—';
+    const tooltip = `Dia ${i} | Plano: ${planFmt} | Real: ${realFmt}`;
+    html += `<div class="road-cell ${cls}" style="${extraStyle}" title="${tooltip}">${i}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ========================
+// HISTORY
+// ========================
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const dias = Object.entries(state.dias)
+    .filter(([d, v]) => v.fechado || parseInt(d) < state.diaAtual)
+    .sort((a, b) => parseInt(b[0]) - parseInt(a[0]));
+
+  if (!dias.length) {
+    list.innerHTML = '<div class="empty-state">Nenhum dia fechado ainda</div>';
+    return;
+  }
+
+  list.innerHTML = dias.map(([d, v]) => {
+    const lucro = (v.bancaFinal || v.bancaInicial) - v.bancaInicial;
+    const pct = v.bancaInicial ? (lucro / v.bancaInicial * 100) : 0;
+    const greens = (v.apostas||[]).filter(a => a.status==='green').length;
+    const reds = (v.apostas||[]).filter(a => a.status==='red').length;
+    return `
+    <div class="day-card ${lucro >= 0 ? 'completed-win':'completed-loss'}" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="day-number">Dia ${d}</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">${(v.apostas||[]).length} apostas</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:${lucro>=0?'var(--green)':'var(--red)'};">${fmt(v.bancaFinal || v.bancaInicial)}</div>
+          <div style="font-size:0.65rem;color:${lucro>=0?'var(--green)':'var(--red)'};">${lucro>=0?'+':''}${pct.toFixed(1)}%</div>
+        </div>
+      </div>
+      ${(v.apostas||[]).length ? `
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${(v.apostas||[]).map(ap => `
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:0.65rem;">
+            <span style="color:${ap.status==='green'?'var(--green)':ap.status==='red'?'var(--red)':'var(--muted)'};">${ap.status==='green'?'✓':ap.status==='red'?'✗':'?'}</span>
+            <span style="color:var(--muted);margin:0 4px;">${ap.desc || 'Aposta'}</span>
+            <span style="color:var(--text);">${ap.odd ? 'x'+ap.odd : ''}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ========================
+// STATS
+// ========================
+function renderStats() {
+  const dias = Object.values(state.dias).filter(d => d.fechado);
+  const totalApostas = dias.reduce((a,d) => a + (d.apostas||[]).length, 0);
+  const totalGreens = dias.reduce((a,d) => a + (d.apostas||[]).filter(x=>x.status==='green').length, 0);
+  const totalReds = dias.reduce((a,d) => a + (d.apostas||[]).filter(x=>x.status==='red').length, 0);
+  const wr = totalApostas ? (totalGreens/totalApostas*100).toFixed(0) : 0;
+  const crescimento = state.bancaAtual / BANCA_INICIAL;
+  const diasRestantes = 100 - state.diaAtual + 1;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stats-card">
+      <div class="sc-label">Winrate</div>
+      <div class="sc-val" style="color:${wr>=50?'var(--green)':'var(--red)'};">${wr}%</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:4px;">${totalGreens}G / ${totalReds}R</div>
+    </div>
+    <div class="stats-card">
+      <div class="sc-label">Crescimento</div>
+      <div class="sc-val" style="color:var(--gold);">${crescimento.toFixed(1)}x</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:4px;">Desde R$ 30</div>
+    </div>
+    <div class="stats-card">
+      <div class="sc-label">Dias jogados</div>
+      <div class="sc-val" style="color:var(--blue);">${state.diaAtual-1}</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:4px;">${diasRestantes} restantes</div>
+    </div>
+    <div class="stats-card">
+      <div class="sc-label">Total apostas</div>
+      <div class="sc-val" style="color:var(--text);">${totalApostas}</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:4px;">${(totalApostas/(state.diaAtual-1||1)).toFixed(1)}/dia</div>
+    </div>
+    <div class="stats-card full">
+      <div class="sc-label">Próxima meta (dia ${state.diaAtual})</div>
+      <div class="sc-val" style="color:var(--green);">${fmt(state.bancaAtual * 1.1)}</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:4px;">+${fmt(state.bancaAtual * 0.1)} hoje</div>
+    </div>
+    <div class="stats-card full" style="margin-top:0;">
+      <div class="sc-label" style="margin-bottom:8px;">Balanço histórico (editável)</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:4px;">Perdas/gastos anteriores (R$)</div>
+          <input type="number" step="1" value="${state.saldoExterno||0}"
+            oninput="state.saldoExterno=parseFloat(this.value)||0;save();updateHeader();"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.9rem;padding:8px 10px;width:100%;">
+        </div>
+        <div style="text-align:right;min-width:100px;">
+          <div style="font-size:0.6rem;color:var(--muted);">Balanço total</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;" id="stats-balanco-val">${fmt((state.saldoExterno||0)+(state.bancaAtual-30))}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Simple chart
+  renderChart();
+}
+
+function renderChart() {
+  const canvas = document.getElementById('banca-chart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * devicePixelRatio;
+  canvas.height = 200 * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  const W = canvas.offsetWidth;
+  const H = 200;
+
+  // Real points
+  const realDias = Object.entries(state.dias)
+    .filter(([d,v]) => v.bancaFinal != null)
+    .sort((a,b) => parseInt(a[0])-parseInt(b[0]));
+  const realPoints = [{ d: 0, val: BANCA_INICIAL }];
+  realDias.forEach(([d, v]) => realPoints.push({ d: parseInt(d), val: v.bancaFinal }));
+
+  // Planned points (up to current day)
+  const maxDay = Math.max(state.diaAtual, realPoints[realPoints.length-1]?.d || 1);
+  const planPoints = [];
+  for (let i = 0; i <= maxDay; i++) planPoints.push({ d: i, val: 30 * Math.pow(1.1, i) });
+
+  if (realPoints.length < 2) {
+    ctx.fillStyle = '#5a6070';
+    ctx.font = '11px Space Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('Feche o primeiro dia para ver o gráfico', W/2, H/2);
+    return;
+  }
+
+  const allVals = [...realPoints.map(p=>p.val), ...planPoints.map(p=>p.val)];
+  const maxVal = Math.max(...allVals);
+  const pad = { t: 20, b: 36, l: 52, r: 12 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const toX = d => pad.l + (d / maxDay) * cW;
+  const toY = v => pad.t + cH - (v / maxVal) * cH;
+
+  // Grid lines
+  ctx.strokeStyle = '#222733';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (cH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#5a6070'; ctx.font = '9px Space Mono'; ctx.textAlign = 'right';
+    ctx.fillText(fmtShort(maxVal - (maxVal/4)*i), pad.l - 4, y + 3);
+  }
+
+  // Planned line (dashed blue)
+  ctx.beginPath();
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#4d9fff';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  planPoints.forEach((p,i) => i===0 ? ctx.moveTo(toX(p.d),toY(p.val)) : ctx.lineTo(toX(p.d),toY(p.val)));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Real fill
+  ctx.beginPath();
+  realPoints.forEach((p,i) => i===0 ? ctx.moveTo(toX(p.d),toY(p.val)) : ctx.lineTo(toX(p.d),toY(p.val)));
+  ctx.lineTo(toX(realPoints[realPoints.length-1].d), toY(0));
+  ctx.lineTo(toX(0), toY(0));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,229,160,0.07)';
+  ctx.fill();
+
+  // Real line (green)
+  ctx.beginPath();
+  ctx.strokeStyle = '#00e5a0';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  realPoints.forEach((p,i) => i===0 ? ctx.moveTo(toX(p.d),toY(p.val)) : ctx.lineTo(toX(p.d),toY(p.val)));
+  ctx.stroke();
+
+  // Dots on real
+  realPoints.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(toX(p.d), toY(p.val), 3.5, 0, Math.PI*2);
+    ctx.fillStyle = '#00e5a0'; ctx.fill();
+  });
+
+  // Legend
+  ctx.font = '10px Space Mono'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#00e5a0';
+  ctx.fillRect(pad.l, H - 16, 14, 2.5);
+  ctx.fillText('Real', pad.l + 18, H - 12);
+  ctx.setLineDash([4,4]);
+  ctx.strokeStyle = '#4d9fff'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.l + 60, H - 15); ctx.lineTo(pad.l + 74, H - 15); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#4d9fff';
+  ctx.fillText('Planejado', pad.l + 78, H - 12);
+}
+
+// ========================
+// NAV
+// ========================
+function switchView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  btn.classList.add('active');
+
+  if (name === 'hist') renderHistory();
+  if (name === 'stats') renderStats();
+  if (name === 'kelly') renderKelly();
+}
+
+// ========================
+// TOAST
+// ========================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ========================
+// KELLY
+// ========================
+function getWinrateReal() {
+  const dias = Object.values(state.dias);
+  const apostas = dias.flatMap(d => d.apostas || []).filter(a => a.status === 'green' || a.status === 'red');
+  const greens = apostas.filter(a => a.status === 'green').length;
+  return { total: apostas.length, greens, wr: apostas.length >= 5 ? greens / apostas.length : null };
+}
+
+function kellyFrac(p, odd) {
+  const b = odd - 1;
+  const q = 1 - p;
+  return (p * b - q) / b;
+}
+
+function calcKelly() {
+  const odd = parseFloat(document.getElementById('kelly-odd')?.value) || 1.65;
+  const pctInput = parseFloat(document.getElementById('kelly-pct')?.value) || 67.5;
+  const p = pctInput / 100;
+  const banca = state.bancaAtual;
+
+  const f = kellyFrac(p, odd);
+  const fMeio = f / 2;
+  const fQuarto = f / 4;
+
+  const breakeven = (1 / odd * 100).toFixed(1);
+  const ev = (p * (odd - 1) - (1 - p)).toFixed(4);
+
+  const res = document.getElementById('kelly-result');
+  if (!res) return;
+
+  if (f <= 0) {
+    res.innerHTML = `
+      <div style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px;">
+        <div style="color:var(--red);font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;margin-bottom:4px;">⚠ Aposta sem valor esperado positivo</div>
+        <div style="font-size:0.7rem;color:var(--muted);">Com ${pctInput}% de acerto, você precisa de odd mínima <strong style="color:var(--text);">${(1/p).toFixed(2)}</strong> para ter lucro. Essa odd exige ${breakeven}% de acerto.</div>
+      </div>`;
+    renderKellyTable(p);
+    return;
+  }
+
+  res.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div style="background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.25);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Kelly cheio</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--green);">${(f*100).toFixed(1)}%</div>
+        <div style="font-size:0.7rem;color:var(--green);margin-top:4px;font-weight:700;">R$ ${(f*banca).toFixed(2)}</div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;">agressivo</div>
+      </div>
+      <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.3);border-radius:8px;padding:12px;text-align:center;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);"></div>
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">½ Kelly ✦</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--gold);">${(fMeio*100).toFixed(1)}%</div>
+        <div style="font-size:0.7rem;color:var(--gold);margin-top:4px;font-weight:700;">R$ ${(fMeio*banca).toFixed(2)}</div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;">recomendado</div>
+      </div>
+      <div style="background:rgba(77,159,255,0.08);border:1px solid rgba(77,159,255,0.25);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">¼ Kelly</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--blue);">${(fQuarto*100).toFixed(1)}%</div>
+        <div style="font-size:0.7rem;color:var(--blue);margin-top:4px;font-weight:700;">R$ ${(fQuarto*banca).toFixed(2)}</div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;">conservador</div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;font-size:0.7rem;">
+      <span style="color:var(--muted);">EV por R$1 apostado</span>
+      <span style="color:${ev>=0?'var(--green)':'var(--red)'};font-family:'Syne',sans-serif;font-weight:700;">${ev >= 0 ? '+' : ''}R$ ${ev}</span>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;font-size:0.7rem;">
+      <span style="color:var(--muted);">Odd break-even para ${pctInput}%</span>
+      <span style="color:var(--text);font-family:'Syne',sans-serif;font-weight:700;">${(1/p).toFixed(2)}</span>
+    </div>`;
+
+  renderKellyTable(p);
+}
+
+function renderKellyTable(p) {
+  const odds = [1.30, 1.40, 1.50, 1.55, 1.60, 1.65, 1.70, 1.75, 1.80, 1.90, 2.00, 2.20, 2.50];
+  const banca = state.bancaAtual;
+  const el = document.getElementById('kelly-table');
+  if (!el) return;
+
+  let rows = odds.map(odd => {
+    const f = kellyFrac(p, odd);
+    const fMeio = f / 2;
+    const ok = f > 0;
+    return `
+      <div style="display:grid;grid-template-columns:50px 1fr 1fr 1fr;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;color:${ok?'var(--text)':'var(--muted)'};">${odd.toFixed(2)}</div>
+        <div style="font-size:0.7rem;color:${ok?'var(--green)':'var(--red)'};">${ok?(f*100).toFixed(1)+'%':'negativo'}</div>
+        <div style="font-size:0.7rem;color:${ok?'var(--gold)':'var(--muted)'};">${ok?(fMeio*100).toFixed(1)+'%':'—'}</div>
+        <div style="font-size:0.7rem;color:${ok?'var(--blue)':'var(--muted)'};">${ok?'R$ '+(fMeio*banca).toFixed(2):'—'}</div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:50px 1fr 1fr 1fr;gap:6px;padding-bottom:6px;border-bottom:2px solid var(--border);margin-bottom:2px;">
+      <span style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;">Odd</span>
+      <span style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;">Kelly</span>
+      <span style="font-size:0.55rem;color:var(--gold);text-transform:uppercase;">½ Kelly</span>
+      <span style="font-size:0.55rem;color:var(--blue);text-transform:uppercase;">Valor R$</span>
+    </div>
+    ${rows}`;
+}
+
+function renderKellyDia() {
+  const el = document.getElementById('kelly-dia-card');
+  if (!el) return;
+
+  const dia = state.diaAtual;
+  const dadosDia = state.dias[dia] || { bancaInicial: state.bancaAtual, apostas: [] };
+  const bancaInicial = dadosDia.bancaInicial;
+  const metaDia = bancaInicial * 0.10;
+  const metaBancaFinal = bancaInicial * 1.10;
+
+  // Calc lucro atual do dia (apostas concluídas)
+  const apostas = dadosDia.apostas || [];
+  const lucroAtual = apostas.reduce((acc, ap) => acc + calcRetorno(ap), 0);
+  const bancaAgora = bancaInicial + lucroAtual;
+  const falta = metaBancaFinal - bancaAgora;
+  const progresso = Math.min(100, Math.max(0, (lucroAtual / metaDia) * 100));
+
+  const pendentes = apostas.filter(a => !a.status).length;
+  const greens = apostas.filter(a => a.status === 'green').length;
+  const reds = apostas.filter(a => a.status === 'red').length;
+
+  const statusMeta = lucroAtual >= metaDia ? 'atingida' : falta <= 0 ? 'atingida' : 'pendente';
+
+  el.innerHTML = `
+    <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Balanço do dia vs meta 10%</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Banca inicial hoje</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--text);">${fmt(bancaInicial)}</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Meta (+10%)</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--gold);">${fmt(metaBancaFinal)}</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid ${lucroAtual>=0?'rgba(0,229,160,0.3)':'rgba(255,77,109,0.3)'};border-radius:8px;padding:10px;">
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Lucro atual</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:${lucroAtual>=0?'var(--green)':'var(--red)'};">${lucroAtual>=0?'+':''}${fmt(lucroAtual)}</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid ${falta<=0?'rgba(0,229,160,0.3)':'var(--border)'};border-radius:8px;padding:10px;">
+        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">${falta<=0?'Meta atingida ✓':'Falta lucrar'}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:${falta<=0?'var(--green)':'var(--text)'};">${falta<=0?'🎯':fmt(falta)}</div>
+      </div>
+    </div>
+
+    <!-- Barra de progresso -->
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--muted);margin-bottom:5px;">
+        <span>Progresso da meta</span>
+        <span style="color:${progresso>=100?'var(--green)':'var(--text)'};">${progresso.toFixed(0)}%</span>
+      </div>
+      <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;">
+        <div style="height:100%;border-radius:4px;width:${progresso}%;background:${progresso>=100?'var(--green)':progresso>=50?'var(--gold)':'var(--blue)'};transition:width 0.4s ease;"></div>
+      </div>
+    </div>
+
+    <!-- Apostas do dia resumo -->
+    <div style="display:flex;gap:8px;font-size:0.7rem;">
+      <span style="background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.25);border-radius:6px;padding:4px 10px;color:var(--green);">✓ ${greens} green</span>
+      <span style="background:rgba(255,77,109,0.12);border:1px solid rgba(255,77,109,0.25);border-radius:6px;padding:4px 10px;color:var(--red);">✗ ${reds} red</span>
+      ${pendentes>0?`<span style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--muted);">⏳ ${pendentes} pendente${pendentes>1?'s':''}</span>`:''}
+    </div>`;
+}
+
+function renderKelly() {
+  renderKellyDia();
+
+  const { total, greens, wr } = getWinrateReal();
+  const wrEl = document.getElementById('kelly-wr-real');
+  const totalEl = document.getElementById('kelly-total-ap');
+  const noteEl = document.getElementById('kelly-wr-note');
+  const pctInput = document.getElementById('kelly-pct');
+  const baseCard = document.getElementById('kelly-base-card');
+  const realCard = document.getElementById('kelly-real-card');
+
+  const usingReal = wr !== null && total >= 5;
+  const wrUsado = usingReal ? wr : 0.675;
+
+  if (wrEl) {
+    wrEl.textContent = wr !== null ? (wr*100).toFixed(1)+'%' : '—';
+    wrEl.style.color = wr !== null ? (wr >= 0.675 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
+  }
+  if (totalEl) totalEl.textContent = total + (total===1?' aposta':' apostas');
+
+  // Highlight which card is active
+  if (baseCard) baseCard.style.borderColor = usingReal ? 'var(--border)' : 'var(--green)';
+  if (realCard) realCard.style.borderColor = usingReal ? 'var(--green)' : 'var(--border)';
+
+  if (pctInput && !pctInput._touched) pctInput.value = (wrUsado * 100).toFixed(1);
+
+  if (noteEl) {
+    if (total === 0) {
+      noteEl.innerHTML = '⬅ Usando <strong style="color:var(--text)">base 67,5%</strong> — nenhuma aposta registrada ainda. Após 5 apostas seu histórico real passa a ser usado.';
+    } else if (total < 5) {
+      noteEl.innerHTML = `⬅ Usando <strong style="color:var(--text)">base 67,5%</strong> — ainda com ${total} aposta${total>1?'s':''}, mínimo 5 para usar o histórico real.`;
+    } else {
+      const diff = ((wr - 0.675)*100).toFixed(1);
+      const sign = diff >= 0 ? '+' : '';
+      noteEl.innerHTML = `✓ Usando <strong style="color:var(--green)">histórico real ${(wr*100).toFixed(1)}%</strong> (${sign}${diff}% vs base). Com ${total} apostas: ${greens} acertos, ${total-greens} erros.`;
+      noteEl.style.color = 'var(--green)';
+    }
+  }
+
+  calcKelly();
+}
+
+// ========================
+// INIT
+// ========================
+(async () => {
+  const savedConfig = localStorage.getItem('fb_config');
+  const savedUser = localStorage.getItem('escalada_user');
+  if (savedConfig && savedUser) {
+    try {
+      const config = JSON.parse(savedConfig);
+      const ok = await initFirebase(config, savedUser);
+      if (ok) {
+        syncDot('syncing');
+        const snap = await window._fbGet();
+        if (snap.exists() && snap.val()) {
+          state = snap.val();
+          localStorage.setItem('escalada_state', JSON.stringify(state));
+        }
+        startFirebaseListener();
+        syncDot('synced');
+      }
+    } catch(e) { syncDot('error'); }
+  }
+  updateHeader();
+  renderTodayCard();
+})();
+</script>
+</body>
+</html>
