@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álbum da Copa 2026 - L²</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const {
+  useState,
+  useMemo,
+  useEffect,
+  useRef
+} = React;
+const Check = ({
+  size = 20
+}) => /*#__PURE__*/React.createElement("svg", {
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "3",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+}, /*#__PURE__*/React.createElement("polyline", {
+  points: "20 6 9 17 4 12"
+}));
+const Download = ({
+  size = 20
+}) => /*#__PURE__*/React.createElement("svg", {
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "7 10 12 15 17 10"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "12",
+  y1: "15",
+  x2: "12",
+  y2: "3"
+}));
+const BarChart3 = ({
+  size = 20
+}) => /*#__PURE__*/React.createElement("svg", {
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M3 3v18h18"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M18 17V9"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M13 17V5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M8 17v-3"
+}));
+const Album = ({
+  size = 20
+}) => /*#__PURE__*/React.createElement("svg", {
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+}, /*#__PURE__*/React.createElement("rect", {
+  x: "3",
+  y: "3",
+  width: "18",
+  height: "18",
+  rx: "2"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "9",
+  y1: "3",
+  x2: "9",
+  y2: "21"
+}));
+const FileText = ({
+  size = 20
+}) => /*#__PURE__*/React.createElement("svg", {
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "14 2 14 8 20 8"
+}));
+const TEAMS = [{
+  "group": "",
+  "name": "Somos 26",
+  "code": "FWC1",
+  "count": 1,
+  "qty": [1],
+  "labels": ["00"]
+}, {
+  "group": "",
+  "name": "Copa 2026",
+  "code": "FWC2",
+  "count": 4,
+  "qty": [1, 1, 0, 3],
+  "labels": ["1", "2", "3", "4"]
+}, {
+  "group": "",
+  "name": "Bola e países sede",
+  "code": "FWC3",
+  "count": 4,
+  "qty": [2, 1, 0, 0],
+  "labels": ["5", "6", "7", "8"]
+}, {
+  "group": "A",
+  "name": "México",
+  "code": "MEX",
+  "count": 20,
+  "qty": [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "África do Sul",
+  "code": "RSA",
+  "count": 20,
+  "qty": [0, 1, 4, 3, 1, 1, 1, 1, 0, 2, 1, 2, 1, 1, 2, 2, 2, 0, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Coréia do Sul",
+  "code": "KOR",
+  "count": 20,
+  "qty": [0, 0, 0, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 0, 1, 2, 2, 0, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Rep. Tcheca",
+  "code": "CZE",
+  "count": 20,
+  "qty": [2, 1, 0, 4, 1, 1, 0, 3, 2, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "B",
+  "name": "Canadá",
+  "code": "CAN",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 0, 3, 0, 1, 1, 2, 1, 0, 0, 1, 0, 1, 1, 1, 1, 2],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Bósnia",
+  "code": "BIH",
+  "count": 20,
+  "qty": [2, 1, 0, 0, 1, 1, 0, 0, 1, 2, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Catar",
+  "code": "QAT",
+  "count": 20,
+  "qty": [0, 0, 0, 0, 1, 1, 0, 1, 1, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Suíça",
+  "code": "SUI",
+  "count": 20,
+  "qty": [1, 2, 1, 0, 1, 0, 2, 1, 2, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "C",
+  "name": "Brasil",
+  "code": "BRA",
+  "count": 20,
+  "qty": [1, 1, 0, 2, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 1, 0, 2, 0, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Marrocos",
+  "code": "MAR",
+  "count": 20,
+  "qty": [0, 0, 1, 1, 2, 1, 1, 1, 4, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Haiti",
+  "code": "HAI",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 3, 1, 0, 0, 2, 1, 1, 2, 1, 3, 1, 0, 4, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Escócia",
+  "code": "SCO",
+  "count": 20,
+  "qty": [0, 3, 1, 2, 0, 1, 0, 1, 2, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "D",
+  "name": "Estados Unidos",
+  "code": "USA",
+  "count": 20,
+  "qty": [1, 1, 1, 0, 1, 1, 2, 0, 1, 1, 2, 0, 0, 2, 1, 3, 1, 2, 2, 2],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Paraguai",
+  "code": "PAR",
+  "count": 20,
+  "qty": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 2, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Austrália",
+  "code": "AUS",
+  "count": 20,
+  "qty": [1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Turquia",
+  "code": "TUR",
+  "count": 20,
+  "qty": [2, 1, 2, 1, 0, 1, 0, 1, 0, 1, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "E",
+  "name": "Alemanha",
+  "code": "GER",
+  "count": 20,
+  "qty": [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Curaçao",
+  "code": "CUW",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 0, 2, 1, 1, 0, 1, 2, 1, 0, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Costa do Marfim",
+  "code": "CIV",
+  "count": 20,
+  "qty": [0, 1, 1, 0, 1, 0, 2, 0, 1, 1, 1, 1, 0, 1, 0, 2, 1, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Equador",
+  "code": "ECU",
+  "count": 20,
+  "qty": [0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "F",
+  "name": "Holanda",
+  "code": "NED",
+  "count": 20,
+  "qty": [0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 2, 2, 3, 0, 1, 0, 0, 1, 0, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Japão",
+  "code": "JPN",
+  "count": 20,
+  "qty": [0, 1, 1, 0, 1, 1, 2, 0, 1, 1, 2, 0, 0, 0, 1, 2, 0, 0, 1, 2],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Suécia",
+  "code": "SWE",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 1, 0, 2, 1, 1, 0, 0, 1, 0, 2, 0, 0, 1, 2, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Tunísia",
+  "code": "TUN",
+  "count": 20,
+  "qty": [1, 1, 2, 0, 0, 1, 1, 1, 0, 1, 2, 1, 1, 1, 1, 2, 3, 1, 1, 2],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "G",
+  "name": "Bélgica",
+  "code": "BEL",
+  "count": 20,
+  "qty": [4, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Egito",
+  "code": "EGY",
+  "count": 20,
+  "qty": [1, 2, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Irã",
+  "code": "IRN",
+  "count": 20,
+  "qty": [0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 2, 0, 0, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Nova Zelândia",
+  "code": "NZL",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 0, 1, 3, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "H",
+  "name": "Espanha",
+  "code": "ESP",
+  "count": 20,
+  "qty": [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 2, 0, 1, 1, 1, 0, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Cabo Verde",
+  "code": "CPV",
+  "count": 20,
+  "qty": [1, 1, 1, 3, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 3, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Arábia Saudita",
+  "code": "KSA",
+  "count": 20,
+  "qty": [1, 0, 3, 0, 2, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Uruguai",
+  "code": "URU",
+  "count": 20,
+  "qty": [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 3, 1, 1, 1, 2, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "I",
+  "name": "França",
+  "code": "FRA",
+  "count": 20,
+  "qty": [0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Senegal",
+  "code": "SEN",
+  "count": 20,
+  "qty": [1, 0, 1, 0, 1, 0, 3, 0, 0, 1, 3, 1, 0, 1, 0, 1, 1, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Iraque",
+  "code": "IRQ",
+  "count": 20,
+  "qty": [0, 3, 1, 0, 0, 0, 1, 0, 1, 1, 3, 1, 1, 1, 1, 2, 1, 0, 1, 2],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Noruega",
+  "code": "NOR",
+  "count": 20,
+  "qty": [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "J",
+  "name": "Argentina",
+  "code": "ARG",
+  "count": 20,
+  "qty": [1, 2, 0, 1, 1, 1, 1, 1, 1, 2, 0, 1, 2, 1, 2, 0, 0, 1, 3, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Argélia",
+  "code": "ALG",
+  "count": 20,
+  "qty": [1, 1, 1, 2, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Áustria",
+  "code": "AUT",
+  "count": 20,
+  "qty": [2, 2, 0, 0, 0, 1, 0, 1, 1, 1, 1, 2, 2, 1, 0, 1, 1, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Jordânia",
+  "code": "JOR",
+  "count": 20,
+  "qty": [0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "K",
+  "name": "Portugal",
+  "code": "POR",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Congo",
+  "code": "COD",
+  "count": 20,
+  "qty": [0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 1, 1, 0, 1, 2, 0, 1, 2, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Uzbequistão",
+  "code": "UZB",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 3, 1, 1, 0, 1, 1, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Colômbia",
+  "code": "COL",
+  "count": 20,
+  "qty": [0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "L",
+  "name": "Inglaterra",
+  "code": "ENG",
+  "count": 20,
+  "qty": [1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 1, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Croácia",
+  "code": "CRO",
+  "count": 20,
+  "qty": [1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Gana",
+  "code": "GHA",
+  "count": 20,
+  "qty": [1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 3],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "",
+  "name": "Panamá",
+  "code": "PAN",
+  "count": 20,
+  "qty": [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 2, 1, 1, 1, 1, 2, 1, 0, 1, 1],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+}, {
+  "group": "FIFA World Cup History",
+  "name": "História da copa",
+  "code": "FWCH",
+  "count": 11,
+  "qty": [1, 1, 1, 0, 1, 2, 2, 0, 2, 1, 1],
+  "labels": ["9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+}, {
+  "group": "Figurinhas da Colca-Cola",
+  "name": "CC",
+  "code": "CC",
+  "count": 14,
+  "qty": [0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0],
+  "labels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+}];
+const ISO = {
+  MEX: 'mx',
+  RSA: 'za',
+  KOR: 'kr',
+  CZE: 'cz',
+  CAN: 'ca',
+  BIH: 'ba',
+  QAT: 'qa',
+  SUI: 'ch',
+  BRA: 'br',
+  MAR: 'ma',
+  HAI: 'ht',
+  SCO: 'gb-sct',
+  USA: 'us',
+  PAR: 'py',
+  AUS: 'au',
+  TUR: 'tr',
+  GER: 'de',
+  CUW: 'cw',
+  CIV: 'ci',
+  ECU: 'ec',
+  NED: 'nl',
+  JPN: 'jp',
+  SWE: 'se',
+  TUN: 'tn',
+  BEL: 'be',
+  EGY: 'eg',
+  IRN: 'ir',
+  NZL: 'nz',
+  ESP: 'es',
+  CPV: 'cv',
+  KSA: 'sa',
+  URU: 'uy',
+  FRA: 'fr',
+  SEN: 'sn',
+  IRQ: 'iq',
+  NOR: 'no',
+  ARG: 'ar',
+  ALG: 'dz',
+  AUT: 'at',
+  JOR: 'jo',
+  POR: 'pt',
+  COD: 'cd',
+  UZB: 'uz',
+  COL: 'co',
+  ENG: 'gb-eng',
+  CRO: 'hr',
+  GHA: 'gh',
+  PAN: 'pa'
+};
+const FLAG = code => {
+  if (!ISO[code]) return null;
+  return `https://flagcdn.com/w80/${ISO[code]}.png`;
+};
+const FLAG_BG = code => {
+  if (!ISO[code]) return null;
+  return `https://flagcdn.com/w320/${ISO[code]}.png`;
+};
+const GROUP_COLORS = {
+  A: '#1A8754',
+  B: '#D4A017',
+  C: '#0B6E4F',
+  D: '#C2410C',
+  E: '#0B6E4F',
+  F: '#1A8754',
+  G: '#D4A017',
+  H: '#C2410C',
+  I: '#0B6E4F',
+  J: '#1A8754',
+  K: '#D4A017',
+  L: '#C2410C',
+  '': '#6B7280'
+};
+const INITIAL_DATA = {"FWC1":[0],"FWC2":[1,1,1,1],"FWC3":[1,1,1,0],"MEX":[0,1,0,1,1,1,1,1,1,1,0,1,1,1,1,0,1,0,1,0],"RSA":[0,1,4,2,2,1,1,1,1,1,1,1,1,1,1,1,2,0,1,1],"KOR":[0,0,0,2,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1],"CZE":[1,1,0,4,1,1,0,2,1,1,1,0,1,1,1,1,1,1,0,1],"CAN":[1,1,1,1,1,2,0,1,1,1,1,1,0,1,1,1,1,1,1,2],"BIH":[3,2,1,1,1,1,0,2,1,2,2,1,0,1,1,3,0,1,1,1],"QAT":[1,0,0,1,1,1,0,1,1,1,1,1,1,1,2,1,1,1,1,0],"SUI":[1,1,1,1,1,1,1,2,3,1,1,2,1,2,1,1,0,0,1,1],"BRA":[1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0,1,1],"MAR":[0,0,1,1,1,1,1,1,3,1,1,1,1,1,1,0,1,1,1,1],"HAI":[1,1,1,1,2,1,0,1,1,1,1,1,1,1,1,0,4,1,2,1],"SCO":[1,2,1,1,0,1,0,1,2,1,1,0,1,1,0,0,1,1,1,0],"USA":[1,1,2,1,1,1,2,1,1,1,3,1,0,1,2,2,1,2,3,2],"PAR":[0,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1,2,1,1,0],"AUS":[1,0,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,0,0],"TUR":[1,1,2,1,0,1,1,2,0,1,3,2,1,1,2,2,2,1,1,1],"GER":[1,0,1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,2,1,1],"CUW":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,0],"CIV":[0,1,1,0,1,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1],"ECU":[0,1,1,1,1,0,1,1,1,1,0,1,2,0,1,0,1,0,1,1],"NED":[0,1,0,1,1,1,1,1,0,1,2,1,2,0,1,1,0,1,0,1],"JPN":[0,2,1,0,1,1,1,0,1,1,2,0,1,0,1,1,0,0,1,1],"SWE":[1,1,1,2,1,1,1,1,1,1,1,2,1,2,0,0,1,3,2,1],"TUN":[1,1,1,1,0,1,1,1,0,1,3,1,2,1,1,2,4,1,1,1],"BEL":[2,1,1,1,1,1,1,1,1,2,1,0,1,1,1,1,1,1,1,0],"EGY":[1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1],"IRN":[0,1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,1,0,0,1],"NZL":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,2,1,1,1],"ESP":[1,1,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,1,0,1],"CPV":[1,1,1,3,1,1,0,1,1,1,0,1,1,1,1,1,2,1,1,1],"KSA":[1,0,4,0,1,1,1,1,0,1,1,2,1,2,1,1,1,1,1,1],"URU":[1,2,1,1,1,1,1,1,1,1,1,2,1,3,1,1,1,1,1,1],"FRA":[0,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,2],"SEN":[1,1,1,1,1,1,1,0,1,1,3,1,1,1,1,1,1,1,1,1],"IRQ":[1,2,1,0,1,1,1,1,1,1,2,1,1,1,2,1,1,0,1,2],"NOR":[1,0,1,0,1,0,1,1,1,0,1,1,0,1,1,1,1,0,1,1],"ARG":[1,1,0,1,1,1,1,1,1,1,1,1,3,1,1,0,1,1,3,0],"ALG":[1,1,1,2,1,1,0,1,1,0,1,0,1,1,0,0,0,1,1,0],"AUT":[1,1,1,0,0,1,1,1,1,1,1,1,2,1,0,1,1,1,1,0],"JOR":[0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1],"POR":[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"COD":[0,1,1,1,2,1,0,1,1,1,1,1,2,1,1,1,1,1,2,1],"UZB":[1,1,1,1,1,1,1,2,1,1,1,3,1,1,1,1,1,2,1,1],"COL":[0,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1],"ENG":[1,1,1,1,1,1,1,1,1,1,2,1,0,1,1,1,1,1,1,1],"CRO":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,0,1,1,1,1],"GHA":[1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1],"PAN":[0,1,1,2,1,1,1,1,0,1,3,2,1,1,1,3,2,0,1,1],"FWCH":[1,2,1,1,1,1,2,0,2,1,1],"CC":[0,0,0,1,0,0,1,2,1,0,1,1,0,2]};
+const _fbApp = firebase.initializeApp({
+    apiKey: "AIzaSyCcuioYqLyIHHCjEaGZehx7OaY-_W8bsPw",
+    authDomain: "album-copa-2026-3a9f0.firebaseapp.com",
+    projectId: "album-copa-2026-3a9f0",
+    storageBucket: "album-copa-2026-3a9f0.firebasestorage.app",
+    messagingSenderId: "407610394756",
+    appId: "1:407610394756:web:bd1de7dd5cc8ecfc655ad1"
+  });
+const DOC_REF = firebase.firestore(_fbApp).collection("album").doc("shared");
+const STORAGE_KEY = "album-copa-2026-l2";
+function initState() {
+  return INITIAL_DATA;
+}
+function App() {
+  const [state, setState] = useState(initState);
+  const [tab, setTab] = useState("album");
+  const [search, setSearch] = useState("");
+  const [exportFaltantes, setExportFaltantes] = useState(true);
+  const [exportRepetidas, setExportRepetidas] = useState(true);
+  const [syncStatus, setSyncStatus] = useState("connecting");
+  const isMounted = useRef(true);
+  const saveTimer = useRef(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    setSyncStatus("connecting");
+    const unsub = DOC_REF.onSnapshot(snap => {
+      if (!isMounted.current) return;
+      if (snap.exists) {
+        const data = snap.data();
+        if (TEAMS.every(t => Array.isArray(data[t.code]) && data[t.code].length === t.count)) {
+          setState(data);
+          setSyncStatus("synced");
+          return;
+        }
+      }
+      DOC_REF.set(INITIAL_DATA)
+        .then(() => { if (isMounted.current) setSyncStatus("synced"); })
+        .catch(() => { if (isMounted.current) setSyncStatus("error"); });
+    }, () => { if (isMounted.current) setSyncStatus("error"); });
+    return () => { isMounted.current = false; unsub(); };
+  }, []);
+
+  useEffect(() => {
+    if (syncStatus === "connecting") return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      setSyncStatus("saving");
+      DOC_REF.set(state)
+        .then(() => { if (isMounted.current) setSyncStatus("synced"); })
+        .catch(() => { if (isMounted.current) setSyncStatus("error"); });
+    }, 800);
+  }, [state]);
+  const cycle = (code, idx) => {
+    setState(prev => {
+      const arr = [...prev[code]];
+      const cur = arr[idx];
+      // cycle: 0 -> 1 -> 2 -> ... up to 9, then back to 0 via reset row interaction handled separately
+      arr[idx] = cur + 1 > 9 ? 0 : cur + 1;
+      return {
+        ...prev,
+        [code]: arr
+      };
+    });
+  };
+  const decrement = (code, idx) => {
+    setState(prev => {
+      const arr = [...prev[code]];
+      arr[idx] = Math.max(0, arr[idx] - 1);
+      return {
+        ...prev,
+        [code]: arr
+      };
+    });
+  };
+  const reset = (code, idx) => {
+    setState(prev => {
+      const arr = [...prev[code]];
+      arr[idx] = 0;
+      return {
+        ...prev,
+        [code]: arr
+      };
+    });
+  };
+
+  // metrics
+  const metrics = useMemo(() => {
+    let total = 0,
+      tenho = 0,
+      faltam = 0,
+      repetidas = 0;
+    TEAMS.forEach(t => {
+      const arr = state[t.code];
+      total += t.count;
+      arr.forEach(q => {
+        if (q >= 1) tenho += 1;else faltam += 1;
+        if (q > 1) repetidas += q - 1;
+      });
+    });
+    const pct = total > 0 ? tenho / total * 100 : 0;
+    return {
+      total,
+      tenho,
+      faltam,
+      repetidas,
+      pct
+    };
+  }, [state]);
+  const faltantesList = useMemo(() => {
+    return TEAMS.map(t => {
+      const nums = [];
+      state[t.code].forEach((q, i) => {
+        if (q === 0) nums.push(t.labels[i]);
+      });
+      return {
+        ...t,
+        nums
+      };
+    }).filter(t => t.nums.length > 0);
+  }, [state]);
+  const repetidasList = useMemo(() => {
+    return TEAMS.map(t => {
+      const nums = [];
+      state[t.code].forEach((q, i) => {
+        if (q > 1) nums.push({
+          n: t.labels[i],
+          q
+        });
+      });
+      return {
+        ...t,
+        nums
+      };
+    }).filter(t => t.nums.length > 0);
+  }, [state]);
+  const exportPDF = () => {
+    const getCode = (code) => code.startsWith('FWC') || code === 'FWCH' ? 'FWC' : code;
+    let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Álbum Copa 2026 - Relatório</title>
+    <style>
+      @media print { @page { margin: 20mm; } }
+      body{font-family:'Inter',Arial,sans-serif;padding:32px;color:#1a2e22;}
+      h1{font-family:'Oswald',Arial,sans-serif;font-size:28px;border-bottom:4px solid #0B6E4F;padding-bottom:8px;margin-bottom:24px;letter-spacing:1px;text-transform:uppercase;}
+      h2{font-family:'Oswald',Arial,sans-serif;font-size:18px;color:#0B6E4F;margin-top:28px;border-left:5px solid #D4A017;padding-left:10px;}
+      table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+      th,td{border:1px solid #d6dad4;padding:6px 10px;text-align:left;}
+      th{background:#0B6E4F;color:#fff;font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:12px;letter-spacing:0.5px;}
+      tr:nth-child(even){background:#F4F1EA;}
+    </style></head><body>`;
+    html += `<h1>Álbum Copa 2026 — Relatório</h1>`;
+    if (exportFaltantes) {
+      html += `<h2>Figurinhas Faltantes</h2><table><tr><th>Seleção</th><th>Faltam</th><th>Figurinhas</th></tr>`;
+      faltantesList.forEach(t => {
+        const code = getCode(t.code);
+        const figs = t.nums.map(n => code + n).join(', ');
+        html += `<tr><td>${t.name}</td><td>${t.nums.length}</td><td>${figs}</td></tr>`;
+      });
+      html += `</table>`;
+    }
+    if (exportRepetidas) {
+      html += `<h2>Figurinhas Repetidas</h2><table><tr><th>Seleção</th><th>Total Extras</th><th>Figurinhas</th></tr>`;
+      repetidasList.forEach(t => {
+        const code = getCode(t.code);
+        const totalRep = t.nums.reduce((a, b) => a + (b.q - 1), 0);
+        const detail = t.nums.map(n => `${n.q - 1} ${code}${n.n}`).join(', ');
+        html += `<tr><td>${t.name}</td><td>${totalRep}</td><td>${detail}</td></tr>`;
+      });
+      html += `</table>`;
+    }
+    html += `<script>window.onload=function(){window.print();}<\/script></body></html>`;
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "'Inter', sans-serif",
+      background: "#F4F1EA",
+      minHeight: "100vh"
+    }
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;500;700&display=swap');
+        .sticker-square {
+          width: 38px; height: 38px;
+          border-radius: 6px;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'Oswald', sans-serif;
+          font-weight: 700; font-size: 13px;
+          cursor: pointer;
+          border: 2px solid #d6dad4;
+          background: #fff;
+          color: #9aa39a;
+          position: relative;
+          transition: all 0.15s ease;
+          user-select: none;
+        }
+        .sticker-square.have {
+          background: linear-gradient(135deg, #0B6E4F, #1A8754);
+          color: #fff;
+          border-color: #0B6E4F;
+        }
+        .sticker-square:hover {
+          transform: scale(1.08);
+          box-shadow: 0 2px 8px rgba(11,110,79,0.25);
+        }
+        .badge {
+          position: absolute; top: -6px; right: -6px;
+          background: #D4A017; color: #fff; border-radius: 50%;
+          width: 17px; height: 17px; font-size: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 700;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+          z-index: 2;
+        }
+        .reset-btn {
+          opacity: 0; transition: opacity 0.15s;
+          position: absolute; bottom: -6px; right: -6px;
+          background: #1a2e22; color: #fff; border-radius: 50%;
+          width: 14px; height: 14px; font-size: 9px;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+        }
+        .sticker-square:hover .reset-btn { opacity: 1; }
+        .group-badge {
+          display:inline-flex; align-items:center; justify-content:center;
+          width: 26px; height: 26px; border-radius: 6px;
+          font-family: 'Oswald', sans-serif; font-weight: 700; color: #fff;
+          font-size: 13px; margin-right: 10px; flex-shrink: 0;
+        }
+        .tab-btn {
+          font-family: 'Oswald', sans-serif; text-transform: uppercase;
+          letter-spacing: 0.5px; font-size: 13px; padding: 10px 18px;
+          border-radius: 8px 8px 0 0; cursor: pointer; border: none;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .back-to-top {
+          position: fixed; bottom: 24px; right: 24px;
+          width: 44px; height: 44px; border-radius: 50%;
+          background: #0B6E4F; color: #fff; border: none;
+          font-size: 20px; cursor: pointer; z-index: 999;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          display: flex; align-items: center; justify-content: center;
+          transition: opacity 0.2s, transform 0.2s;
+        }
+        .back-to-top:hover { background: #1A8754; transform: scale(1.1); }
+      `), /*#__PURE__*/React.createElement("header", {
+    style: {
+      background: "linear-gradient(135deg, #0B6E4F 0%, #1A8754 60%, #D4A017 100%)",
+      padding: "20px 24px",
+      color: "#fff"
+    }
+  }, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontFamily: "'Oswald', sans-serif",
+      fontSize: "26px",
+      textTransform: "uppercase",
+      letterSpacing: "1.5px",
+      margin: 0
+    }
+  }, "Álbum da Copa 2026 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      opacity: 0.7,
+      fontSize: '16px'
+    }
+  }, "— L²")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "4px 0 0",
+      fontSize: "13px",
+      opacity: 0.9
+    }
+  }, metrics.tenho, " de ", metrics.total, " figurinhas (", metrics.pct.toFixed(1), "%)", " ", syncStatus === "connecting" ? "⏳" : syncStatus === "saving" ? "💾" : syncStatus === "synced" ? "✅" : "⚠️"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "rgba(255,255,255,0.25)",
+      height: 6,
+      borderRadius: 4,
+      marginTop: 10,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      height: "100%",
+      width: `${metrics.pct}%`,
+      transition: "width 0.3s"
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 4,
+      padding: "12px 24px 0",
+      borderBottom: "2px solid #0B6E4F"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "tab-btn",
+    onClick: () => setTab("album"),
+    style: {
+      background: tab === "album" ? "#0B6E4F" : "#e7e4dc",
+      color: tab === "album" ? "#fff" : "#0B6E4F"
+    }
+  }, /*#__PURE__*/React.createElement(Album, {
+    size: 15
+  }), " Álbum"), /*#__PURE__*/React.createElement("button", {
+    className: "tab-btn",
+    onClick: () => setTab("metrics"),
+    style: {
+      background: tab === "metrics" ? "#0B6E4F" : "#e7e4dc",
+      color: tab === "metrics" ? "#fff" : "#0B6E4F"
+    }
+  }, /*#__PURE__*/React.createElement(BarChart3, {
+    size: 15
+  }), " Métricas"), /*#__PURE__*/React.createElement("button", {
+    className: "tab-btn",
+    onClick: () => setTab("export"),
+    style: {
+      background: tab === "export" ? "#0B6E4F" : "#e7e4dc",
+      color: tab === "export" ? "#fff" : "#0B6E4F"
+    }
+  }, /*#__PURE__*/React.createElement(FileText, {
+    size: 15
+  }), " Exportar"), /*#__PURE__*/React.createElement("button", {
+    className: "tab-btn",
+    onClick: () => setTab("selecoes"),
+    style: {
+      background: tab === "selecoes" ? "#0B6E4F" : "#e7e4dc",
+      color: tab === "selecoes" ? "#fff" : "#0B6E4F"
+    }
+  }, "🌍 Seleções")), /*#__PURE__*/React.createElement("main", {
+    style: {
+      padding: "20px 24px 60px",
+      maxWidth: 1100,
+      margin: "0 auto"
+    }
+  }, tab === "album" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    placeholder: "🔍 Pesquisar seleção...",
+    value: search,
+    onChange: e => setSearch(e.target.value),
+    style: {
+      width: "100%", boxSizing: "border-box", padding: "10px 16px",
+      fontSize: 14, fontFamily: "'Inter', sans-serif",
+      border: "2px solid #d6dad4", borderRadius: 8,
+      marginBottom: 14, outline: "none", background: "#fff"
+    }
+  }), TEAMS.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.code.toLowerCase().includes(search.toLowerCase())).map(t => {
+    const flag = FLAG(t.code);
+    const arr = state[t.code];
+    const have = arr.filter(q => q >= 1).length;
+    const rep = arr.reduce((s, q) => s + (q > 1 ? q - 1 : 0), 0);
+    return /*#__PURE__*/React.createElement("div", {
+      key: t.code,
+      id: "team-" + t.code,
+      style: {
+        position: "relative",
+        borderRadius: 10,
+        padding: "14px 16px",
+        marginBottom: 10,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+        overflow: "hidden",
+        background: "#fff"
+      }
+    }, flag && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        backgroundImage: `url(${FLAG_BG(t.code)})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        opacity: 0.07,
+        filter: "saturate(1.3)",
+        pointerEvents: "none"
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        marginBottom: 10,
+        gap: 10
+      }
+    }, flag ? /*#__PURE__*/React.createElement("img", {
+      src: flag,
+      alt: t.code,
+      style: {
+        width: 32,
+        height: 22,
+        objectFit: "cover",
+        borderRadius: 3,
+        boxShadow: "0 0 0 1px #eee"
+      }
+    }) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 32,
+        height: 22,
+        borderRadius: 3,
+        background: "#e7e4dc",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 9,
+        color: "#9aa39a",
+        fontFamily: "'Oswald', sans-serif"
+      }
+    }, t.code), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "'Oswald', sans-serif",
+        fontWeight: 700,
+        fontSize: 16,
+        color: "#1a2e22"
+      }
+    }, t.name), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: "#9aa39a",
+        fontFamily: "'Oswald', sans-serif",
+        letterSpacing: 1
+      }
+    }, t.code), t.group && /*#__PURE__*/React.createElement("span", {
+      className: "group-badge",
+      style: {
+        background: GROUP_COLORS[t.group] || '#6B7280'
+      }
+    }, t.group), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "auto",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: 2
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontFamily: "'Oswald', sans-serif",
+        color: have === t.count ? "#0B6E4F" : "#C2410C",
+        fontWeight: 700
+      }
+    }, have, "/", t.count), rep > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        fontFamily: "'Oswald', sans-serif",
+        color: "#D4A017",
+        fontWeight: 700
+      }
+    }, "+", rep, " repetida", rep > 1 ? "s" : ""))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 8
+      }
+    }, arr.map((q, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: `sticker-square ${q >= 1 ? "have" : ""}`,
+      onClick: () => cycle(t.code, i),
+      onContextMenu: e => {
+        e.preventDefault();
+        decrement(t.code, i);
+      },
+      title: `Figurinha ${t.labels[i]} — clique para +1, botão direito para -1`
+    }, t.labels[i], q > 1 && /*#__PURE__*/React.createElement("span", {
+      className: "badge"
+    }, "+", q - 1), q > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "reset-btn",
+      onClick: e => {
+        e.stopPropagation();
+        reset(t.code, i);
+      },
+      title: "Zerar"
+    }, "×")))));
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: "#9aa39a",
+      textAlign: "center",
+      marginTop: 16
+    }
+  }, "Clique para adicionar (+1) · Clique direito para remover (-1) · \"×\" no canto zera")), tab === "metrics" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(MetricCard, {
+    label: "Concluído",
+    value: `${metrics.pct.toFixed(1)}%`,
+    color: "#0B6E4F",
+    icon: /*#__PURE__*/React.createElement(Check, {
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(MetricCard, {
+    label: "Figurinhas (tenho)",
+    value: `${metrics.tenho} / ${metrics.total}`,
+    color: "#1A8754"
+  }), /*#__PURE__*/React.createElement(MetricCard, {
+    label: "Faltantes",
+    value: metrics.faltam,
+    color: "#C2410C"
+  }), /*#__PURE__*/React.createElement(MetricCard, {
+    label: "Repetidas",
+    value: metrics.repetidas,
+    color: "#D4A017"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: "1 / -1",
+      background: "#fff",
+      borderRadius: 10,
+      padding: 20,
+      boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'Oswald', sans-serif",
+      color: "#1a2e22",
+      marginTop: 0,
+      textTransform: "uppercase",
+      fontSize: 14,
+      letterSpacing: 0.5
+    }
+  }, "Progresso por seleção"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+      gap: 10,
+      marginTop: 12
+    }
+  }, TEAMS.map(t => {
+    const arr = state[t.code];
+    const have = arr.filter(q => q >= 1).length;
+    const pct = have / t.count * 100;
+    return /*#__PURE__*/React.createElement("div", {
+      key: t.code
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontFamily: "'Oswald', sans-serif",
+        color: "#1a2e22",
+        marginBottom: 3,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }
+    }, t.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: "#eee",
+        height: 6,
+        borderRadius: 4,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: pct === 100 ? "#0B6E4F" : "#D4A017",
+        height: "100%",
+        width: `${pct}%`
+      }
+    })));
+  })))), tab === "export" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 10,
+      padding: 24,
+      boxShadow: "0 1px 3px rgba(0,0,0,0.06)"
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'Oswald', sans-serif",
+      color: "#1a2e22",
+      marginTop: 0,
+      textTransform: "uppercase",
+      fontSize: 16
+    }
+  }, "Exportar relatório (PDF)"), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      margin: "16px 0",
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: exportFaltantes,
+    onChange: e => setExportFaltantes(e.target.checked),
+    style: {
+      width: 18,
+      height: 18
+    }
+  }), "Incluir figurinhas faltantes (", faltantesList.reduce((a, t) => a + t.nums.length, 0), " no total)"), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      margin: "16px 0",
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: exportRepetidas,
+    onChange: e => setExportRepetidas(e.target.checked),
+    style: {
+      width: 18,
+      height: 18
+    }
+  }), "Incluir figurinhas repetidas (", metrics.repetidas, " no total)"), /*#__PURE__*/React.createElement("button", {
+    onClick: exportPDF,
+    disabled: !exportFaltantes && !exportRepetidas,
+    style: {
+      marginTop: 12,
+      background: "#0B6E4F",
+      color: "#fff",
+      border: "none",
+      padding: "12px 22px",
+      borderRadius: 8,
+      fontFamily: "'Oswald', sans-serif",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      fontSize: 13,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      opacity: !exportFaltantes && !exportRepetidas ? 0.5 : 1
+    }
+  }, /*#__PURE__*/React.createElement(Download, {
+    size: 16
+  }), " Baixar relatório (HTML p/ PDF)"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: "#9aa39a",
+      marginTop: 12
+    }
+  }, "Abre o relatório em nova aba e aciona o diálogo de impressão. Escolha \"Salvar como PDF\" na impressora.")),
+  tab === "selecoes" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 12, marginTop: 8 }
+  }, TEAMS.filter(t => !!ISO[t.code]).map(t => {
+    const arr = state[t.code];
+    const have = arr.filter(q => q >= 1).length;
+    const pct = Math.round(have / t.count * 100);
+    return /*#__PURE__*/React.createElement("div", {
+      key: t.code,
+      onClick: () => { setTab("album"); setTimeout(() => { const el = document.getElementById("team-" + t.code); if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); el.style.outline = "3px solid #D4A017"; setTimeout(() => { el.style.outline = ""; }, 2000); } }, 100); },
+      style: { cursor: "pointer", background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", transition: "transform 0.15s, box-shadow 0.15s", textAlign: "center" },
+      onMouseEnter: e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(11,110,79,0.2)"; },
+      onMouseLeave: e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)"; }
+    }, /*#__PURE__*/React.createElement("img", {
+      src: FLAG(t.code), alt: t.name,
+      style: { width: "100%", height: 66, objectFit: "cover", display: "block", borderRadius: "12px 12px 0 0" }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: { padding: "8px 6px 10px" }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: { fontSize: 11, fontFamily: "'Oswald', sans-serif", fontWeight: 700, color: "#1a2e22", marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
+    }, t.name), /*#__PURE__*/React.createElement("div", {
+      style: { background: "#eee", height: 4, borderRadius: 4, overflow: "hidden", margin: "0 4px" }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: { background: pct === 100 ? "#0B6E4F" : "#D4A017", height: "100%", width: pct + "%" }
+    })), /*#__PURE__*/React.createElement("div", {
+      style: { fontSize: 10, color: "#9aa39a", marginTop: 3, fontFamily: "'Oswald', sans-serif" }
+    }, have + "/" + t.count)));
+  })))), tab === "export" && /*#__PURE__*/React.createElement("div", {
+    style: { background: "#fff", borderRadius: 10, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: { fontFamily: "'Oswald', sans-serif", color: "#1a2e22", marginTop: 0, textTransform: "uppercase", fontSize: 16 }
+  }, "Exportar relatório (PDF)"), /*#__PURE__*/React.createElement("label", {
+    style: { display: "flex", alignItems: "center", gap: 10, margin: "16px 0", fontSize: 14, cursor: "pointer" }
+  }, /*#__PURE__*/React.createElement("input", { type: "checkbox", checked: exportFaltantes, onChange: e => setExportFaltantes(e.target.checked), style: { width: 18, height: 18 } }), "Incluir figurinhas faltantes (", faltantesList.reduce((a, t) => a + t.nums.length, 0), " no total)"), /*#__PURE__*/React.createElement("label", {
+    style: { display: "flex", alignItems: "center", gap: 10, margin: "16px 0", fontSize: 14, cursor: "pointer" }
+  }, /*#__PURE__*/React.createElement("input", { type: "checkbox", checked: exportRepetidas, onChange: e => setExportRepetidas(e.target.checked), style: { width: 18, height: 18 } }), "Incluir figurinhas repetidas (", metrics.repetidas, " no total)"), /*#__PURE__*/React.createElement("button", {
+    onClick: exportPDF,
+    disabled: !exportFaltantes && !exportRepetidas,
+    style: { marginTop: 12, background: "#0B6E4F", color: "#fff", border: "none", padding: "12px 22px", borderRadius: 8, fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, opacity: !exportFaltantes && !exportRepetidas ? 0.5 : 1 }
+  }, /*#__PURE__*/React.createElement(Download, { size: 16 }), " Imprimir / Salvar como PDF"), /*#__PURE__*/React.createElement("p", {
+    style: { fontSize: 12, color: "#9aa39a", marginTop: 12 }
+  }, "Abre o relatório em nova aba e aciona o diálogo de impressão. Escolha \"Salvar como PDF\" na impressora."), /*#__PURE__*/React.createElement("hr", {
+    style: { margin: "24px 0", borderColor: "#e7e4dc" }
+  }), /*#__PURE__*/React.createElement("h3", {
+    style: { fontFamily: "'Oswald', sans-serif", color: "#1a2e22", marginTop: 0, textTransform: "uppercase", fontSize: 16 }
+  }, "Exportar dados (backup)"), /*#__PURE__*/React.createElement("p", {
+    style: { fontSize: 13, color: "#9aa39a", marginBottom: 12 }
+  }, "Clique na caixa abaixo para selecionar tudo e copie para transferir seus dados entre dispositivos."), /*#__PURE__*/React.createElement("textarea", {
+    readOnly: true,
+    value: JSON.stringify(state),
+    onClick: e => e.target.select(),
+    style: { width: "100%", boxSizing: "border-box", height: 100, fontFamily: "monospace", fontSize: 11, padding: 10, borderRadius: 8, border: "1px solid #d6dad4", resize: "vertical", background: "#f9f9f7", cursor: "pointer" }
+  })));
+}
+function MetricCard({
+  label,
+  value,
+  color,
+  icon
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 10,
+      padding: 18,
+      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      borderLeft: `4px solid ${color}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "#9aa39a",
+      fontFamily: "'Oswald', sans-serif",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      marginBottom: 6
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      fontFamily: "'Oswald', sans-serif",
+      fontWeight: 700,
+      color: "#1a2e22",
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color
+    }
+  }, icon), value));
+}
+function BackToTop() {
+  const [visible, setVisible] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  if (!visible) return null;
+  return /*#__PURE__*/React.createElement("button", {
+    className: "back-to-top",
+    onClick: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+    title: "Voltar ao topo"
+  }, "↑");
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(App, null), /*#__PURE__*/React.createElement(BackToTop, null)));
+
+</script>
+</body>
+</html>
