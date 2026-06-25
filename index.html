@@ -1816,73 +1816,9 @@ function renderKelly() {
 }
 
 // ========================
-// RESTORE STATE (one-time data recovery)
-// ========================
-const RESTORED_STATE = {
-  bancaAtual: 47.12,
-  diaAtual: 5,
-  saldoExterno: -230,
-  dias: {
-    1: {
-      bancaInicial: 30,
-      bancaFinal: 34.43,
-      fechado: true,
-      apostas: [
-        { desc: '', valor: 12,   odd: 1.72, status: 'green', data: '2026-06-22' },
-        { desc: '', valor: 8.88, odd: 1.62, status: 'red',   data: '2026-06-22' },
-        { desc: '', valor: 3.16, odd: 1.70, status: 'green', data: '2026-06-22' },
-        { desc: '', valor: 4.52, odd: 1.62, status: 'red',   data: '2026-06-22' },
-        { desc: '', valor: 7.75, odd: 1.88, status: 'green', data: '2026-06-22' }
-      ]
-    },
-    2: {
-      bancaInicial: 34.43,
-      bancaFinal: 17.78,
-      fechado: true,
-      apostas: [
-        { desc: '', valor: 7,    odd: 1.90, status: 'red',   data: '2026-06-23' },
-        { desc: '', valor: 9,    odd: 1.93, status: 'green', data: '2026-06-23' },
-        { desc: '', valor: 0.65, odd: 2.50, status: 'red',   data: '2026-06-23' },
-        { desc: '', valor: 5,    odd: 1.62, status: 'red',   data: '2026-06-23' },
-        { desc: '', valor: 5.6,  odd: 1.95, status: 'red',   data: '2026-06-23' },
-        { desc: '', valor: 5,    odd: 1.85, status: 'green', data: '2026-06-23' },
-        { desc: '', valor: 5.38, odd: 1.91, status: 'red',   data: '2026-06-23' },
-        { desc: '', valor: 3.04, odd: 1.62, status: 'red',   data: '2026-06-23' },
-        { desc: '', valor: 2.6,  odd: 1.62, status: 'red',   data: '2026-06-23' }
-      ]
-    },
-    3: {
-      bancaInicial: 17.78,
-      bancaFinal: 47.12,
-      fechado: true,
-      apostas: [
-        { desc: '', valor: 10, odd: 4.25, status: 'green', data: '2026-06-24' },
-        { desc: '', valor: 3,  odd: 20,   status: 'red',   data: '2026-06-24' }
-      ]
-    },
-    4: {
-      bancaInicial: 47.12,
-      bancaFinal: null,
-      fechado: false,
-      apostas: []
-    }
-  }
-};
-
-// ========================
 // INIT
 // ========================
 (async () => {
-  // Always restore the known state first
-  const localRaw = localStorage.getItem('escalada_state');
-  const local = localRaw ? JSON.parse(localRaw) : null;
-
-  // Use restored state if local is missing or behind
-  if (!local || local.diaAtual < RESTORED_STATE.diaAtual || local.bancaAtual < RESTORED_STATE.bancaAtual) {
-    state = JSON.parse(JSON.stringify(RESTORED_STATE));
-    localStorage.setItem('escalada_state', JSON.stringify(state));
-  }
-
   const savedConfig = localStorage.getItem('fb_config');
   const savedUser = localStorage.getItem('escalada_user');
   if (savedConfig && savedUser) {
@@ -1891,8 +1827,15 @@ const RESTORED_STATE = {
       const ok = await initFirebase(config, savedUser);
       if (ok) {
         syncDot('syncing');
-        // Push restored state to Firebase
-        await pushToFirebase();
+        // Pull from Firebase first — remote is the source of truth
+        const snap = await window._fbGet();
+        if (snap.exists() && snap.val()) {
+          state = snap.val();
+          localStorage.setItem('escalada_state', JSON.stringify(state));
+        } else {
+          // Nothing on Firebase yet — push local
+          await pushToFirebase();
+        }
         startFirebaseListener();
         syncDot('synced');
       }
