@@ -759,55 +759,75 @@
     </div>
   </div>
 
-  <!-- VIEW: KELLY -->
+  <!-- VIEW: RIVERS -->
   <div class="view" id="view-kelly">
-    <div class="section-title">Calculadora Kelly</div>
+    <div class="section-title">Modelo Rivers</div>
 
-    <!-- Winrate dual display -->
+    <!-- Taxa de acerto por categoria -->
     <div class="day-card" style="margin-bottom:12px;">
-      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Taxa de acerto</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <!-- Base card -->
-        <div id="kelly-base-card" style="background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;transition:border-color 0.2s;">
-          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Base padrão</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--muted);">67,5%</div>
-          <div style="font-size:0.6rem;color:var(--muted);margin-top:4px;">Ponto de partida</div>
+      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Taxa de acerto por categoria</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div id="rivers-vencedor-card" style="background:var(--surface2);border:2px solid var(--green);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Vencedor</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--green);" id="rivers-wr-vencedor">—</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:3px;" id="rivers-n-vencedor">0 apostas</div>
+          <div style="font-size:0.58rem;margin-top:4px;" id="rivers-ev-vencedor"></div>
         </div>
-        <!-- Real card -->
-        <div id="kelly-real-card" style="background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;transition:border-color 0.2s;">
-          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Seu histórico</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;" id="kelly-wr-real">—</div>
-          <div style="font-size:0.6rem;color:var(--muted);margin-top:4px;" id="kelly-total-ap">0 apostas</div>
+        <div id="rivers-stats-card" style="background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Stats</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;" id="rivers-wr-stats">—</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:3px;" id="rivers-n-stats">0 apostas</div>
+          <div style="font-size:0.58rem;margin-top:4px;" id="rivers-ev-stats"></div>
         </div>
       </div>
-      <div id="kelly-wr-note" style="font-size:0.65rem;background:var(--surface2);border-radius:6px;padding:9px 11px;color:var(--muted);line-height:1.5;"></div>
+      <div id="rivers-wr-note" style="font-size:0.65rem;background:var(--surface2);border-radius:6px;padding:9px 11px;color:var(--muted);line-height:1.5;"></div>
     </div>
 
     <!-- Balanço do dia vs meta -->
     <div class="day-card" style="margin-bottom:12px;" id="kelly-dia-card"></div>
 
-    <!-- Calculadora -->
+    <!-- Calculadora Rivers -->
     <div class="day-card" style="margin-bottom:12px;">
-      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Calcular para esta aposta</div>
+      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;">Calculadora Rivers</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
         <div class="input-group">
-          <label>Odd da aposta</label>
-          <input type="number" id="kelly-odd" step="0.01" min="1.01" placeholder="ex: 1.65" oninput="calcKelly()" value="1.65">
+          <label>Categoria</label>
+          <select id="rivers-cat" onchange="calcRivers()" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.85rem;padding:8px 10px;">
+            <option value="vencedor">Vencedor</option>
+            <option value="stats">Stats</option>
+          </select>
         </div>
         <div class="input-group">
-          <label>% acerto usado</label>
-          <input type="number" id="kelly-pct" step="0.1" min="1" max="100" placeholder="67.5" oninput="this._touched=true;calcKelly()" value="67.5">
+          <label>Tipo</label>
+          <select id="rivers-tipo" onchange="calcRivers()" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.85rem;padding:8px 10px;">
+            <option value="ancora">⚓ Âncora (meta 10%)</option>
+            <option value="bingo">🎯 Bingo (2% fixo)</option>
+            <option value="extra">✨ Extra (superávit)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Odd da aposta</label>
+          <input type="number" id="rivers-odd" step="0.01" min="1.01" placeholder="ex: 1.65" oninput="calcRivers()" value="1.65">
+        </div>
+        <div class="input-group">
+          <label>Feeling (1–5)</label>
+          <select id="rivers-feeling" onchange="calcRivers()" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.85rem;padding:8px 10px;">
+            <option value="5">5 — Certeza alta</option>
+            <option value="4">4 — Confiança boa</option>
+            <option value="3" selected>3 — Neutro</option>
+            <option value="2">2 — Com dúvida</option>
+            <option value="1">1 — Não apostar</option>
+          </select>
         </div>
       </div>
 
-      <!-- Resultado Kelly -->
-      <div id="kelly-result" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="rivers-result" style="display:flex;flex-direction:column;gap:8px;margin-top:4px;"></div>
     </div>
 
-    <!-- Tabela de odds -->
+    <!-- Tabela de referência -->
     <div class="day-card">
-      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Referência rápida — seu acerto atual</div>
+      <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Referência rápida — Vencedor</div>
       <div id="kelly-table"></div>
     </div>
   </div>
@@ -818,7 +838,7 @@
   <button class="nav-btn active" onclick="switchView('hoje', this)">Hoje</button>
   <button class="nav-btn" onclick="switchView('hist', this)">Histórico</button>
   <button class="nav-btn" onclick="switchView('stats', this)">Stats</button>
-  <button class="nav-btn" onclick="switchView('kelly', this)">Kelly</button>
+  <button class="nav-btn" onclick="switchView('kelly', this)">Rivers</button>
   <button class="nav-btn" onclick="openSetup()" style="flex:0;padding:10px 14px;" title="Sincronização">☁</button>
 </div>
 
@@ -1605,106 +1625,172 @@ function showToast(msg) {
 }
 
 // ========================
-// KELLY
+// MODELO RIVERS
 // ========================
-function getWinrateReal() {
-  const dias = Object.values(state.dias);
-  const apostas = dias.flatMap(d => d.apostas || []).filter(a => a.status === 'green' || a.status === 'red');
-  const greens = apostas.filter(a => a.status === 'green').length;
-  return { total: apostas.length, greens, wr: apostas.length >= 5 ? greens / apostas.length : null };
-}
+
+// Feeling multipliers
+const FEELING_MULT = { 5: 1.0, 4: 0.75, 3: 0.50, 2: 0.25, 1: 0 };
+const FEELING_LABEL = { 5: 'Certeza alta', 4: 'Confiança boa', 3: 'Neutro', 2: 'Com dúvida', 1: 'Não apostar' };
+
+// Base win rates by category
+const WR_BASE = { vencedor: 0.675, stats: 0.50 };
 
 function kellyFrac(p, odd) {
   const b = odd - 1;
-  const q = 1 - p;
-  return (p * b - q) / b;
+  return (p * b - (1 - p)) / b;
 }
 
-function calcKelly() {
-  const odd = parseFloat(document.getElementById('kelly-odd')?.value) || 1.65;
-  const pctInput = parseFloat(document.getElementById('kelly-pct')?.value) || 67.5;
-  const p = pctInput / 100;
-  const banca = state.bancaAtual;
+function getWinrateReal() {
+  const dias = Object.values(state.dias);
+  const todas = dias.flatMap(d => d.apostas || []).filter(a => a.status === 'green' || a.status === 'red');
+  const greens = todas.filter(a => a.status === 'green').length;
+  return { total: todas.length, greens, wr: todas.length >= 5 ? greens / todas.length : null };
+}
 
-  const f = kellyFrac(p, odd);
-  const fMeio = f / 2;
-  const fQuarto = f / 4;
+function getRiversWR(cat) {
+  const dias = Object.values(state.dias);
+  const apostas = dias.flatMap(d => d.apostas || [])
+    .filter(a => (a.status === 'green' || a.status === 'red') && a.cat === cat);
+  const greens = apostas.filter(a => a.status === 'green').length;
+  // Use real if 5+ apostas, else base
+  if (apostas.length >= 5) return { wr: greens / apostas.length, total: apostas.length, greens, isReal: true };
+  return { wr: WR_BASE[cat], total: apostas.length, greens, isReal: false };
+}
 
-  const breakeven = (1 / odd * 100).toFixed(1);
-  const ev = (p * (odd - 1) - (1 - p)).toFixed(4);
-
-  const res = document.getElementById('kelly-result');
+function calcRivers() {
+  const cat = document.getElementById('rivers-cat')?.value || 'vencedor';
+  const tipo = document.getElementById('rivers-tipo')?.value || 'ancora';
+  const odd = parseFloat(document.getElementById('rivers-odd')?.value) || 1.65;
+  const feeling = parseInt(document.getElementById('rivers-feeling')?.value) || 3;
+  const res = document.getElementById('rivers-result');
   if (!res) return;
 
-  if (f <= 0) {
-    res.innerHTML = `
-      <div style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px;">
-        <div style="color:var(--red);font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;margin-bottom:4px;">⚠ Aposta sem valor esperado positivo</div>
-        <div style="font-size:0.7rem;color:var(--muted);">Com ${pctInput}% de acerto, você precisa de odd mínima <strong style="color:var(--text);">${(1/p).toFixed(2)}</strong> para ter lucro. Essa odd exige ${breakeven}% de acerto.</div>
-      </div>`;
-    renderKellyTable(p);
+  const banca = state.bancaAtual;
+  const { wr, isReal } = getRiversWR(cat);
+  const feelingMult = FEELING_MULT[feeling];
+  const breakeven = 1 / odd;
+  const ev = wr * (odd - 1) - (1 - wr);
+
+  // Feeling 1 = não apostar
+  if (feeling === 1) {
+    res.innerHTML = `<div style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px;">
+      <div style="color:var(--red);font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;">❌ Não apostar</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Feeling 1 — seu instinto está dizendo não. Respeite.</div>
+    </div>`;
     return;
   }
 
-  res.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-      <div style="background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.25);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Kelly cheio</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--green);">${(f*100).toFixed(1)}%</div>
-        <div style="font-size:0.7rem;color:var(--green);margin-top:4px;font-weight:700;">R$ ${(f*banca).toFixed(2)}</div>
-        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;">agressivo</div>
-      </div>
-      <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.3);border-radius:8px;padding:12px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);"></div>
-        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">½ Kelly ✦</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--gold);">${(fMeio*100).toFixed(1)}%</div>
-        <div style="font-size:0.7rem;color:var(--gold);margin-top:4px;font-weight:700;">R$ ${(fMeio*banca).toFixed(2)}</div>
-        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;">recomendado</div>
-      </div>
-      <div style="background:rgba(77,159,255,0.08);border:1px solid rgba(77,159,255,0.25);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">¼ Kelly</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--blue);">${(fQuarto*100).toFixed(1)}%</div>
-        <div style="font-size:0.7rem;color:var(--blue);margin-top:4px;font-weight:700;">R$ ${(fQuarto*banca).toFixed(2)}</div>
-        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;">conservador</div>
-      </div>
-    </div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;font-size:0.7rem;">
-      <span style="color:var(--muted);">EV por R$1 apostado</span>
-      <span style="color:${ev>=0?'var(--green)':'var(--red)'};font-family:'Syne',sans-serif;font-weight:700;">${ev >= 0 ? '+' : ''}R$ ${ev}</span>
-    </div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;font-size:0.7rem;">
-      <span style="color:var(--muted);">Odd break-even para ${pctInput}%</span>
-      <span style="color:var(--text);font-family:'Syne',sans-serif;font-weight:700;">${(1/p).toFixed(2)}</span>
+  // Stats EV negativo
+  if (cat === 'stats' && ev <= 0) {
+    res.innerHTML = `<div style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px;">
+      <div style="color:var(--red);font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;">❌ Não apostar — EV negativo</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Stats com ${(wr*100).toFixed(1)}% de acerto e odd ${odd.toFixed(2)} dá EV ${ev.toFixed(3)} por real. Você precisa de odd mínima <strong style="color:var(--text);">${breakeven.toFixed(2)}</strong> para ter lucro com 50%.</div>
     </div>`;
+    return;
+  }
 
-  renderKellyTable(p);
+  // Vencedor EV negativo
+  if (ev <= 0) {
+    res.innerHTML = `<div style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;padding:12px;">
+      <div style="color:var(--red);font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;">⚠ EV negativo</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">Com ${(wr*100).toFixed(1)}% de acerto, odd mínima é <strong style="color:var(--text);">${breakeven.toFixed(2)}</strong>. Só aposte se feeling for muito alto.</div>
+    </div>`;
+    if (feeling <= 2) return;
+  }
+
+  // Calculate suggested values by tipo
+  const metaDia = banca * 0.10;
+  const lucroAtual = (state.dias[state.diaAtual]?.apostas || []).reduce((a, ap) => a + calcRetorno(ap), 0);
+  const faltaMeta = Math.max(0, metaDia - lucroAtual);
+
+  let valorBase, valorFinal, tipoLabel, tipoColor, tipoDesc;
+
+  if (tipo === 'ancora') {
+    // Exact value to hit 10% goal
+    const valorAnc = faltaMeta > 0 ? faltaMeta / (odd - 1) : metaDia / (odd - 1);
+    valorBase = valorAnc;
+    tipoLabel = '⚓ Âncora';
+    tipoColor = 'var(--green)';
+    tipoDesc = faltaMeta > 0
+      ? `Para lucrar R$ ${faltaMeta.toFixed(2)} e bater os 10% do dia`
+      : `Meta já atingida! Valor calculado sobre meta base`;
+  } else if (tipo === 'bingo') {
+    valorBase = banca * 0.02;
+    tipoLabel = '🎯 Bingo';
+    tipoColor = 'var(--gold)';
+    tipoDesc = `2% fixo da banca — perda aceitável se red`;
+  } else {
+    // Extra: half of surplus above 10%
+    const superavit = Math.max(0, lucroAtual - metaDia);
+    valorBase = superavit > 0 ? superavit * 0.5 : banca * 0.03;
+    tipoLabel = '✨ Extra';
+    tipoColor = 'var(--blue)';
+    tipoDesc = superavit > 0
+      ? `50% do superávit de R$ ${superavit.toFixed(2)} acima da meta`
+      : `Sem superávit ainda — valor mínimo sugerido`;
+  }
+
+  valorFinal = valorBase * feelingMult;
+  const retornoPotencial = valorFinal * (odd - 1);
+
+  res.innerHTML = `
+    <div style="background:rgba(0,229,160,0.06);border:1px solid rgba(0,229,160,0.2);border-radius:10px;padding:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;color:${tipoColor};">${tipoLabel}</span>
+        <span style="font-size:0.65rem;color:var(--muted);">Feeling ${feeling}/5 · ${FEELING_LABEL[feeling]}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:10px;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Apostar</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:${tipoColor};">R$ ${valorFinal.toFixed(2)}</div>
+        </div>
+        <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:10px;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Retorno</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);">+R$ ${retornoPotencial.toFixed(2)}</div>
+        </div>
+        <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:10px;">
+          <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">EV/real</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:${ev>=0?'var(--green)':'var(--red)'};">${ev>=0?'+':''}${ev.toFixed(3)}</div>
+        </div>
+      </div>
+      <div style="font-size:0.65rem;color:var(--muted);background:var(--surface2);border-radius:6px;padding:8px 10px;">
+        ${tipoDesc} · ${isReal?'Acerto real':'Base'} ${(wr*100).toFixed(1)}% · Feeling ${feelingMult*100}% do valor base
+      </div>
+    </div>
+    ${tipo === 'ancora' && feelingMult < 1 ? `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:0.68rem;color:var(--muted);">
+      ⚠ Com feeling ${feeling}, o valor foi reduzido para R$ ${valorFinal.toFixed(2)} (${feelingMult*100}% de R$ ${valorBase.toFixed(2)}). <strong style="color:var(--text);">A meta de 10% pode não ser atingida com esse valor.</strong>
+    </div>` : ''}`;
+
+  renderKellyTable(wr);
 }
 
 function renderKellyTable(p) {
-  const odds = [1.30, 1.40, 1.50, 1.55, 1.60, 1.65, 1.70, 1.75, 1.80, 1.90, 2.00, 2.20, 2.50];
+  const odds = [1.30, 1.40, 1.48, 1.55, 1.60, 1.65, 1.70, 1.80, 1.90, 2.00, 2.50, 3.00, 5.00];
   const banca = state.bancaAtual;
   const el = document.getElementById('kelly-table');
   if (!el) return;
 
   let rows = odds.map(odd => {
     const f = kellyFrac(p, odd);
-    const fMeio = f / 2;
     const ok = f > 0;
+    const metaDia = banca * 0.10;
+    const ancora = ok ? (metaDia / (odd - 1)).toFixed(2) : '—';
     return `
-      <div style="display:grid;grid-template-columns:50px 1fr 1fr 1fr;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;color:${ok?'var(--text)':'var(--muted)'};">${odd.toFixed(2)}</div>
-        <div style="font-size:0.7rem;color:${ok?'var(--green)':'var(--red)'};">${ok?(f*100).toFixed(1)+'%':'negativo'}</div>
-        <div style="font-size:0.7rem;color:${ok?'var(--gold)':'var(--muted)'};">${ok?(fMeio*100).toFixed(1)+'%':'—'}</div>
-        <div style="font-size:0.7rem;color:${ok?'var(--blue)':'var(--muted)'};">${ok?'R$ '+(fMeio*banca).toFixed(2):'—'}</div>
+      <div style="display:grid;grid-template-columns:45px 60px 1fr 1fr;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;color:${ok?'var(--text)':'var(--muted)'};">${odd.toFixed(2)}</div>
+        <div style="font-size:0.68rem;color:${ok?'var(--green)':'var(--red)'};">${ok?'✓ EV+':'✗ EV-'}</div>
+        <div style="font-size:0.68rem;color:${ok?'var(--gold)':'var(--muted)'};">Âncora: ${ok?'R$ '+ancora:'—'}</div>
+        <div style="font-size:0.68rem;color:${ok?'var(--blue)':'var(--muted)'};">Bingo: ${ok?'R$ '+(banca*0.02).toFixed(2):'—'}</div>
       </div>`;
   }).join('');
 
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:50px 1fr 1fr 1fr;gap:6px;padding-bottom:6px;border-bottom:2px solid var(--border);margin-bottom:2px;">
+    <div style="display:grid;grid-template-columns:45px 60px 1fr 1fr;gap:6px;padding-bottom:6px;border-bottom:2px solid var(--border);margin-bottom:2px;">
       <span style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;">Odd</span>
-      <span style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;">Kelly</span>
-      <span style="font-size:0.55rem;color:var(--gold);text-transform:uppercase;">½ Kelly</span>
-      <span style="font-size:0.55rem;color:var(--blue);text-transform:uppercase;">Valor R$</span>
+      <span style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;">EV</span>
+      <span style="font-size:0.55rem;color:var(--gold);text-transform:uppercase;">⚓ Âncora</span>
+      <span style="font-size:0.55rem;color:var(--blue);text-transform:uppercase;">🎯 Bingo</span>
     </div>
     ${rows}`;
 }
@@ -1776,43 +1862,50 @@ function renderKellyDia() {
 function renderKelly() {
   renderKellyDia();
 
-  const { total, greens, wr } = getWinrateReal();
-  const wrEl = document.getElementById('kelly-wr-real');
-  const totalEl = document.getElementById('kelly-total-ap');
-  const noteEl = document.getElementById('kelly-wr-note');
-  const pctInput = document.getElementById('kelly-pct');
-  const baseCard = document.getElementById('kelly-base-card');
-  const realCard = document.getElementById('kelly-real-card');
+  // Update category winrates
+  ['vencedor', 'stats'].forEach(cat => {
+    const { wr, total, greens, isReal } = getRiversWR(cat);
+    const wrEl = document.getElementById('rivers-wr-' + cat);
+    const nEl = document.getElementById('rivers-n-' + cat);
+    const evEl = document.getElementById('rivers-ev-' + cat);
+    const card = document.getElementById('rivers-' + cat + '-card');
 
-  const usingReal = wr !== null && total >= 5;
-  const wrUsado = usingReal ? wr : 0.675;
-
-  if (wrEl) {
-    wrEl.textContent = wr !== null ? (wr*100).toFixed(1)+'%' : '—';
-    wrEl.style.color = wr !== null ? (wr >= 0.675 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
-  }
-  if (totalEl) totalEl.textContent = total + (total===1?' aposta':' apostas');
-
-  // Highlight which card is active
-  if (baseCard) baseCard.style.borderColor = usingReal ? 'var(--border)' : 'var(--green)';
-  if (realCard) realCard.style.borderColor = usingReal ? 'var(--green)' : 'var(--border)';
-
-  if (pctInput && !pctInput._touched) pctInput.value = (wrUsado * 100).toFixed(1);
-
-  if (noteEl) {
-    if (total === 0) {
-      noteEl.innerHTML = '⬅ Usando <strong style="color:var(--text)">base 67,5%</strong> — nenhuma aposta registrada ainda. Após 5 apostas seu histórico real passa a ser usado.';
-    } else if (total < 5) {
-      noteEl.innerHTML = `⬅ Usando <strong style="color:var(--text)">base 67,5%</strong> — ainda com ${total} aposta${total>1?'s':''}, mínimo 5 para usar o histórico real.`;
-    } else {
-      const diff = ((wr - 0.675)*100).toFixed(1);
-      const sign = diff >= 0 ? '+' : '';
-      noteEl.innerHTML = `✓ Usando <strong style="color:var(--green)">histórico real ${(wr*100).toFixed(1)}%</strong> (${sign}${diff}% vs base). Com ${total} apostas: ${greens} acertos, ${total-greens} erros.`;
-      noteEl.style.color = 'var(--green)';
+    if (wrEl) {
+      wrEl.textContent = (wr * 100).toFixed(1) + '%';
+      const breakeven = cat === 'vencedor' ? 0.675 : 0.50;
+      wrEl.style.color = wr >= breakeven ? 'var(--green)' : 'var(--red)';
     }
+    if (nEl) nEl.textContent = total + (isReal ? ' apostas ✓' : ' apostas (base)');
+    if (evEl) {
+      const oddRef = cat === 'vencedor' ? 1.65 : 1.80;
+      const ev = wr * (oddRef - 1) - (1 - wr);
+      evEl.textContent = 'EV ref: ' + (ev >= 0 ? '+' : '') + ev.toFixed(3);
+      evEl.style.color = ev >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+    if (card) {
+      if (cat === 'stats') {
+        const ev = wr * (1.80 - 1) - (1 - wr);
+        card.style.borderColor = ev > 0 ? 'var(--green)' : 'var(--red)';
+      }
+    }
+  });
+
+  // Note
+  const noteEl = document.getElementById('rivers-wr-note');
+  if (noteEl) {
+    const vData = getRiversWR('vencedor');
+    const sData = getRiversWR('stats');
+    const msgs = [];
+    if (!vData.isReal) msgs.push(`Vencedor: usando base 67,5% (${vData.total}/5 apostas)`);
+    else msgs.push(`Vencedor: ${vData.greens} acertos em ${vData.total} apostas`);
+    if (!sData.isReal) msgs.push(`Stats: usando base 50% (${sData.total}/5 apostas)`);
+    else msgs.push(`Stats: ${sData.greens} acertos em ${sData.total} apostas`);
+    const evStats = sData.wr * 0.80 - (1 - sData.wr);
+    if (evStats <= 0) msgs.push('⚠ Stats com EV negativo — modelo sugere não apostar nessa categoria');
+    noteEl.innerHTML = msgs.join(' · ');
   }
 
-  calcKelly();
+  calcRivers();
 }
 
 // ========================
